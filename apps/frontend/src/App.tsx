@@ -1,10 +1,10 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Dashboard from '@www/components/userPanel/dashboard/Dashboard';
-import PageLayout from '@www/components/userPanel/knowledgeBase/PageLayout';
-import SearchPage from '@www/components/userPanel/search/SearchPage';
-import FileViewerPage from '@www/components/userPanel/knowledgeBase/FileViewerPage';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Dashboard from "@www/components/userPanel/dashboard/Dashboard";
+import FileViewerPage from "@www/components/userPanel/knowledgeBase/FileViewerPage";
+import PageLayout from "@www/components/userPanel/knowledgeBase/PageLayout";
+import SearchPage from "@www/components/userPanel/search/SearchPage";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 const queryClient = new QueryClient({
   defaultOptions: {

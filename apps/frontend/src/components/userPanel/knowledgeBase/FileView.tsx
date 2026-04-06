@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { FaFilePdf, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
-import { API_URL } from '@www/constant';
+import { API_URL } from "@www/constant";
+import { useState, useEffect, useRef } from "react";
+import { FaFilePdf, FaSearchPlus, FaSearchMinus } from "react-icons/fa";
 
 interface SelectedFile {
   id: string;
@@ -25,10 +25,12 @@ function FileView({ selectedFile, fileContent, onClose }: FileViewProps) {
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     const handleScroll = () => {
-      const pageElements = Array.from(container.querySelectorAll('.pdf-page'));
+      const pageElements = [...container.querySelectorAll(".pdf-page")];
       const viewportHeight = container.clientHeight;
 
       const visiblePageIndex = pageElements.findIndex((page) => {
@@ -37,21 +39,23 @@ function FileView({ selectedFile, fileContent, onClose }: FileViewProps) {
         return top - containerTop < viewportHeight / 2 && bottom - containerTop > 0;
       });
 
-      if (visiblePageIndex >= 0) {
+      if (visiblePageIndex !== -1) {
         setCurrentPage(visiblePageIndex + 1);
       }
     };
 
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
   }, [fileContent]);
 
   const handleDownload = () => {
-    if (!selectedFile?.id) return;
-    const a = document.createElement('a');
-    a.style.display = 'none';
+    if (!selectedFile?.id) {
+      return;
+    }
+    const a = document.createElement("a");
+    a.style.display = "none";
     a.href = `${API_URL}/file?id=${selectedFile.id}&download=1`;
-    a.download = '';
+    a.download = "";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -59,23 +63,32 @@ function FileView({ selectedFile, fileContent, onClose }: FileViewProps) {
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black bg-opacity-70" />
-      <div className="relative flex flex-col h-full">
-        <div className="w-full px-6 py-3 flex items-center justify-between bg-black bg-opacity-50 text-white z-50 relative">
+      <div className="bg-opacity-70 absolute inset-0 bg-black" />
+      <div className="relative flex h-full flex-col">
+        <div className="bg-opacity-50 relative z-50 flex w-full items-center justify-between bg-black px-6 py-3 text-white">
           <div className="flex items-center gap-2 truncate">
-            <FaFilePdf className="text-red-400 text-xl" />
-            <span className="text-base font-medium truncate">
-              {(selectedFile.title || 'Untitled Document') + '.pdf'}
+            <FaFilePdf className="text-xl text-red-400" />
+            <span className="truncate text-base font-medium">
+              {(selectedFile.title || "Untitled Document") + ".pdf"}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={handleDownload} className="hover:text-blue-300 transition px-2" aria-label="Download">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+            <button
+              onClick={handleDownload}
+              className="px-2 transition hover:text-blue-300"
+              aria-label="Download"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+                />
               </svg>
             </button>
-            <button onClick={onClose} className="hover:text-red-400 transition" aria-label="Close">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onClick={onClose} className="transition hover:text-red-400" aria-label="Close">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -83,28 +96,28 @@ function FileView({ selectedFile, fileContent, onClose }: FileViewProps) {
         </div>
 
         <div
-          className="flex-1 relative bg-black bg-opacity-50 overflow-y-auto"
+          className="bg-opacity-50 relative flex-1 overflow-y-auto bg-black"
           onClick={(e) => e.stopPropagation()}
           ref={containerRef}
         >
           {fileContent.map((page, index) => (
             <div
               key={index}
-              className="pdf-page w-full flex justify-center mb-2 last:mb-0"
+              className="pdf-page mb-2 flex w-full justify-center last:mb-0"
               style={{ height: `${zoom * 91}vh` }}
             >
               <div
                 style={{
                   transform: `scale(${zoom})`,
-                  transformOrigin: 'top center',
-                  transition: 'transform 0.2s ease',
+                  transformOrigin: "top center",
+                  transition: "transform 0.2s ease",
                 }}
               >
                 <img
                   src={page}
                   alt={`Page ${index + 1}`}
-                  className="object-contain shadow rounded"
-                  style={{ maxWidth: '100%', maxHeight: '90vh', display: 'block' }}
+                  className="rounded object-contain shadow"
+                  style={{ maxWidth: "100%", maxHeight: "90vh", display: "block" }}
                 />
               </div>
             </div>
@@ -112,7 +125,7 @@ function FileView({ selectedFile, fileContent, onClose }: FileViewProps) {
         </div>
 
         <div
-          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-80 text-white px-4 py-2 rounded-full flex items-center gap-4 shadow-lg z-50"
+          className="bg-opacity-80 absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 transform items-center gap-4 rounded-full bg-black px-4 py-2 text-white shadow-lg"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center gap-1 text-sm">
@@ -120,12 +133,12 @@ function FileView({ selectedFile, fileContent, onClose }: FileViewProps) {
             <span>{currentPage}</span>
             <span>/ {totalPages}</span>
           </div>
-          <div className="h-5 border-l border-white mx-2"></div>
+          <div className="mx-2 h-5 border-l border-white" />
           <div className="flex items-center gap-2">
-            <button onClick={handleZoomOut} className="hover:text-gray-300 transition">
+            <button onClick={handleZoomOut} className="transition hover:text-gray-300">
               <FaSearchMinus />
             </button>
-            <button onClick={handleZoomIn} className="hover:text-gray-300 transition">
+            <button onClick={handleZoomIn} className="transition hover:text-gray-300">
               <FaSearchPlus />
             </button>
           </div>

@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect, MouseEventHandler } from 'react';
-import { FaSearch, FaUserCircle, FaBell, FaCog, FaFileAlt } from 'react-icons/fa';
-import { useQuery } from '@tanstack/react-query';
-import DropdownMenu from '@www/components/userPanel/dashboard/header/DropdownMenu';
-import { useNavigate } from 'react-router-dom';
-import { queries } from '@www/api';
+import type { MouseEventHandler } from "react";
+
+import { useQuery } from "@tanstack/react-query";
+import { queries } from "@www/api";
+import DropdownMenu from "@www/components/userPanel/dashboard/header/DropdownMenu";
+import { useState, useRef, useEffect } from "react";
+import { FaSearch, FaUserCircle, FaBell, FaCog, FaFileAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   toggleDropdown: () => void;
@@ -12,14 +14,14 @@ interface HeaderProps {
 
 function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!searchQuery) {
-      setDebouncedQuery('');
+      setDebouncedQuery("");
       setShowDropdown(false);
       return;
     }
@@ -40,8 +42,8 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
         setShowDropdown(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSearch = (e: React.SyntheticEvent) => {
@@ -49,20 +51,20 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     } else {
-      navigate('/search');
+      navigate("/search");
     }
     setShowDropdown(false);
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 bg-custom-blue shadow-md">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-custom-blue bg-white shadow-md">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row items-center justify-between py-4 md:h-16">
-          <div className="flex items-center mb-4 md:mb-0">
-            <h1 className="text-lg md:text-xl font-bold text-gray-800">KiMS Dashboard</h1>
+        <div className="flex flex-col items-center justify-between py-4 md:h-16 md:flex-row">
+          <div className="mb-4 flex items-center md:mb-0">
+            <h1 className="text-lg font-bold text-gray-800 md:text-xl">KiMS Dashboard</h1>
           </div>
 
-          <div className="w-full md:flex-1 md:max-w-2xl md:mx-8 relative" ref={dropdownRef}>
+          <div className="relative w-full md:mx-8 md:max-w-2xl md:flex-1" ref={dropdownRef}>
             <form onSubmit={handleSearch} className="relative">
               <div className="relative">
                 <input
@@ -70,33 +72,37 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search documents, people, or topics..."
-                  className="w-full pl-10 pr-4 py-2 text-sm md:text-base rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none md:text-base"
                   onFocus={() => searchQuery && setShowDropdown(true)}
                 />
                 <FaSearch
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer"
+                  className="absolute top-1/2 left-3 -translate-y-1/2 transform cursor-pointer text-gray-400"
                   onClick={handleSearch as unknown as MouseEventHandler}
                 />
               </div>
             </form>
             {showDropdown && (
-              <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+              <div className="absolute right-0 left-0 z-50 mt-2 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
                 {loading ? (
                   <div className="p-4 text-center text-gray-500">Searching...</div>
                 ) : searchResults.length > 0 ? (
                   searchResults.map((result) => (
                     <div
                       key={result.id}
-                      className="flex items-center px-4 py-2 hover:bg-blue-50 cursor-pointer transition"
+                      className="flex cursor-pointer items-center px-4 py-2 transition hover:bg-blue-50"
                       onClick={() => {
                         navigate(`/file/${result.id}`);
                         setShowDropdown(false);
                       }}
                     >
-                      <FaFileAlt className="text-blue-500 mr-3 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-800 truncate text-sm md:text-base">{result.title || 'Untitled'}</div>
-                        <div className="text-xs text-gray-500 truncate">{result.description || 'No description'}</div>
+                      <FaFileAlt className="mr-3 shrink-0 text-blue-500" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium text-gray-800 md:text-base">
+                          {result.title || "Untitled"}
+                        </div>
+                        <div className="truncate text-xs text-gray-500">
+                          {result.description || "No description"}
+                        </div>
                       </div>
                     </div>
                   ))
@@ -107,28 +113,22 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
             )}
           </div>
 
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
+          <div className="mt-4 flex items-center space-x-4 md:mt-0">
             <button
-              onClick={() => navigate('/notifications')}
-              className="p-2 text-gray-600 hover:text-blue-600 relative"
+              onClick={() => navigate("/notifications")}
+              className="relative p-2 text-gray-600 hover:text-blue-600"
             >
               <FaBell className="text-lg md:text-xl" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />
             </button>
 
-            <button
-              onClick={() => navigate('/settings')}
-              className="p-2 text-gray-600 hover:text-blue-600"
-            >
+            <button onClick={() => navigate("/settings")} className="p-2 text-gray-600 hover:text-blue-600">
               <FaCog className="text-lg md:text-xl" />
             </button>
 
             <div className="relative">
-              <button
-                onClick={toggleDropdown}
-                className="flex items-center space-x-2 focus:outline-none"
-              >
-                <FaUserCircle className="text-xl md:text-2xl text-gray-600 hover:text-blue-600" />
+              <button onClick={toggleDropdown} className="flex items-center space-x-2 focus:outline-none">
+                <FaUserCircle className="text-xl text-gray-600 hover:text-blue-600 md:text-2xl" />
               </button>
 
               {dropdownOpen && <DropdownMenu />}

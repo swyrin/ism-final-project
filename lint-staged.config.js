@@ -1,3 +1,3 @@
 export default {
-  '*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}': ['oxlint', 'oxfmt'],
+  "*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}": ["oxfmt"],
 };

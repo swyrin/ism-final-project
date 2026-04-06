@@ -1,14 +1,17 @@
-import { useState, useEffect, Dispatch, SetStateAction, MouseEvent } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
-import { FaEllipsisV, FaFilePdf } from 'react-icons/fa';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import FileMenu from '@www/components/userPanel/knowledgeBase/FileMenu';
-import ModalCategory from '@www/components/userPanel/knowledgeBase/modalCategory';
-import PageViewer from '@www/components/userPanel/knowledgeBase/PageViewer';
-import letterColors from '@www/data/colorData';
-import { api, queryKeys, FileRecord } from '@www/api';
-import { API_URL } from '@www/constant';
+import type { FileRecord } from "@www/api";
+import type { Dispatch, SetStateAction, MouseEvent } from "react";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api, queryKeys } from "@www/api";
+import FileMenu from "@www/components/userPanel/knowledgeBase/FileMenu";
+import ModalCategory from "@www/components/userPanel/knowledgeBase/modalCategory";
+import PageViewer from "@www/components/userPanel/knowledgeBase/PageViewer";
+import { API_URL } from "@www/constant";
+import letterColors from "@www/data/colorData";
+import * as pdfjsLib from "pdfjs-dist";
+import { useState, useEffect } from "react";
+import { FaEllipsisV, FaFilePdf } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -44,21 +47,23 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
   const { data: infoData } = useQuery({
     queryKey: queryKeys.fileInfo(infoFileId!),
     queryFn: () => api.file.getInfo(infoFileId!),
-    enabled: !!infoFileId && showInfoModal,
+    enabled: Boolean(infoFileId) && showInfoModal,
   });
 
   const addViewMutation = useMutation({
     mutationFn: (id: string) => api.file.addView(id),
     onSuccess: (updatedFile) => {
       setFilteredDocuments((prev) =>
-        prev.map((item) => (item.id === updatedFile.id ? { ...item, ...updatedFile } : item))
+        prev.map((item) => (item.id === updatedFile.id ? { ...item, ...updatedFile } : item)),
       );
     },
   });
 
   const updateFileMutation = useMutation({
     mutationFn: (params: URLSearchParams) => api.file.update(params),
-    onSuccess: () => { window.location.reload(); },
+    onSuccess: () => {
+      window.location.reload();
+    },
   });
 
   const deleteFileMutation = useMutation({
@@ -66,13 +71,17 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
     onSuccess: (_data, id) => {
       setFilteredDocuments((prev) => prev.filter((doc) => doc.id !== id));
     },
-    onError: (err) => { alert('Error deleting file: ' + (err as Error).message); },
+    onError: (err) => {
+      alert("Error deleting file: " + (err as Error).message);
+    },
   });
 
   // Generate thumbnails when documents change
   useEffect(() => {
     const generateThumbnail = async (pdfBlob: Blob, id: string) => {
-      if (loadingThumbnails[id]) return;
+      if (loadingThumbnails[id]) {
+        return;
+      }
       try {
         setLoadingThumbnails((prev) => ({ ...prev, [id]: true }));
         const arrayBuffer = await pdfBlob.arrayBuffer();
@@ -80,14 +89,14 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
         const pdfDoc = await pdfjsLib.getDocument(pdfData).promise;
         const page = await pdfDoc.getPage(1);
         const viewport = page.getViewport({ scale: 2 });
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d')!;
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d")!;
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        await page.render({ canvasContext: context, viewport, intent: 'display' }).promise;
-        setThumbnails((prev) => ({ ...prev, [id]: canvas.toDataURL('image/jpeg', 1) }));
+        await page.render({ canvasContext: context, viewport, intent: "display" }).promise;
+        setThumbnails((prev) => ({ ...prev, [id]: canvas.toDataURL("image/jpeg", 1) }));
       } catch (error) {
-        console.error('Error generating thumbnail:', error);
+        console.error("Error generating thumbnail:", error);
       } finally {
         setLoadingThumbnails((prev) => ({ ...prev, [id]: false }));
       }
@@ -99,11 +108,13 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
           try {
             setLoadingThumbnails((prev) => ({ ...prev, [doc.id]: true }));
             const response = await fetch(`${API_URL}/file?id=${doc.id}`);
-            if (!response.ok) throw new Error(`Failed to fetch file ${doc.id}`);
+            if (!response.ok) {
+              throw new Error(`Failed to fetch file ${doc.id}`);
+            }
             const blob = await response.blob();
             await generateThumbnail(blob, doc.id);
           } catch (error) {
-            console.error('Error loading PDF for thumbnail:', error);
+            console.error("Error loading PDF for thumbnail:", error);
           } finally {
             setLoadingThumbnails((prev) => ({ ...prev, [doc.id]: false }));
           }
@@ -124,7 +135,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
   };
 
   const handleEditName = async (id: string) => {
-    const newName = prompt('Enter new name:');
+    const newName = prompt("Enter new name:");
     if (newName) {
       const params = new URLSearchParams({ id, title: newName });
       updateFileMutation.mutate(params);
@@ -132,7 +143,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
   };
 
   const handleEditDescription = async (id: string) => {
-    const newDescription = prompt('Enter new description:');
+    const newDescription = prompt("Enter new description:");
     if (newDescription) {
       const params = new URLSearchParams({ id, description: newDescription });
       updateFileMutation.mutate(params);
@@ -141,13 +152,17 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
 
   const handleEditCategory = (id: string) => {
     const doc = filteredDocuments.find((d) => d.id === id);
-    if (!doc) return;
+    if (!doc) {
+      return;
+    }
     setCategoryEditDoc(doc);
     setShowCategoryModal(true);
   };
 
   const handleSaveCategory = async (categoryId: string) => {
-    if (!categoryEditDoc) return;
+    if (!categoryEditDoc) {
+      return;
+    }
     const params = new URLSearchParams({ id: categoryEditDoc.id, cid: categoryId });
     updateFileMutation.mutate(params);
   };
@@ -157,10 +172,10 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
   };
 
   const handleDownloadFile = (id: string) => {
-    const a = document.createElement('a');
-    a.style.display = 'none';
+    const a = document.createElement("a");
+    a.style.display = "none";
     a.href = `${API_URL}/file?id=${id}&download=1`;
-    a.download = '';
+    a.download = "";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -171,7 +186,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
       addViewMutation.mutate(doc.id);
       navigate(`/file/${doc.id}`);
     } catch (error) {
-      console.error('Error handling file click:', error);
+      console.error("Error handling file click:", error);
     }
   };
 
@@ -185,24 +200,33 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
     return category ? category.name : String(id);
   };
 
-  const getBorderColor = (initial: string) => letterColors[initial] || 'border-gray-500';
+  const getBorderColor = (initial: string) => letterColors[initial] || "border-gray-500";
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {filteredDocuments.map((doc) => (
-        <div key={doc.id} className="bg-white rounded-2xl shadow hover:shadow-md border border-gray-100 transition-all duration-200 overflow-hidden">
-          <div className="p-4 flex flex-col gap-2 border-b border-gray-100">
+        <div
+          key={doc.id}
+          className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow transition-all duration-200 hover:shadow-md"
+        >
+          <div className="flex flex-col gap-2 border-b border-gray-100 p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center flex-1 min-w-0 cursor-pointer" onClick={() => handleFileClick(doc)}>
-                <FaFilePdf className="text-red-500 text-xl flex-shrink-0" />
-                <h3 className="ml-3 font-semibold text-gray-800 truncate max-w-[140px]">
-                  {doc.title || 'Untitled Document'}
+              <div
+                className="flex min-w-0 flex-1 cursor-pointer items-center"
+                onClick={() => handleFileClick(doc)}
+              >
+                <FaFilePdf className="flex-shrink-0 text-xl text-red-500" />
+                <h3 className="ml-3 max-w-[140px] truncate font-semibold text-gray-800">
+                  {doc.title || "Untitled Document"}
                 </h3>
               </div>
               <div className="relative">
                 <button
-                  onClick={(e) => { e.stopPropagation(); toggleMenu(e, doc.id); }}
-                  className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition hover:bg-gray-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleMenu(e, doc.id);
+                  }}
+                  className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
                 >
                   <FaEllipsisV />
                 </button>
@@ -222,34 +246,44 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
             </div>
 
             {doc.category_name && (
-              <span className={`px-2 py-1 rounded-full text-xs font-semibold w-fit ${getBorderColor(doc.category_name[0])} border-l-4`}>
+              <span
+                className={`w-fit rounded-full px-2 py-1 text-xs font-semibold ${getBorderColor(doc.category_name[0])} border-l-4`}
+              >
                 {doc.category_name}
               </span>
             )}
           </div>
 
-          <div className="h-fix bg-gray-50 flex items-center justify-center cursor-pointer" onClick={() => handleFileClick(doc)}>
+          <div
+            className="h-fix flex cursor-pointer items-center justify-center bg-gray-50"
+            onClick={() => handleFileClick(doc)}
+          >
             {loadingThumbnails[doc.id] ? (
               <div className="flex flex-col items-center justify-center text-gray-400">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400 mb-2"></div>
+                <div className="mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-400" />
                 <span className="text-xs text-gray-400">Generating preview...</span>
               </div>
             ) : thumbnails[doc.id] ? (
-              <img src={thumbnails[doc.id]} alt="PDF Thumbnail" className="w-full h-32 object-cover rounded-lg" style={{ objectPosition: 'top' }} />
+              <img
+                src={thumbnails[doc.id]}
+                alt="PDF Thumbnail"
+                className="h-32 w-full rounded-lg object-cover"
+                style={{ objectPosition: "top" }}
+              />
             ) : (
               <div className="flex flex-col items-center justify-center text-gray-400">
-                <FaFilePdf className="text-gray-300 text-5xl mb-2" />
+                <FaFilePdf className="mb-2 text-5xl text-gray-300" />
                 <span className="text-xs text-gray-400">No preview available</span>
               </div>
             )}
           </div>
 
-          <div className="p-4 cursor-pointer" onClick={() => handleFileClick(doc)}>
-            <p className="text-sm text-gray-700 font-medium mb-1 line-clamp-2">
-              {doc.shortDescription || doc.description || 'Untitled Document'}
+          <div className="cursor-pointer p-4" onClick={() => handleFileClick(doc)}>
+            <p className="mb-1 line-clamp-2 text-sm font-medium text-gray-700">
+              {doc.shortDescription || doc.description || "Untitled Document"}
             </p>
             <div className="text-xs text-gray-400">
-              Uploaded: {doc.modified_at ? new Date(doc.modified_at).toLocaleString() : 'Date not available'}
+              Uploaded: {doc.modified_at ? new Date(doc.modified_at).toLocaleString() : "Date not available"}
             </div>
           </div>
         </div>
@@ -257,54 +291,72 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
 
       <ModalCategory
         isOpen={showCategoryModal}
-        onClose={() => { setShowCategoryModal(false); setCategoryEditDoc(null); }}
+        onClose={() => {
+          setShowCategoryModal(false);
+          setCategoryEditDoc(null);
+        }}
         onSave={handleSaveCategory}
-        initialCategory={categoryEditDoc ? String(categoryEditDoc.cid) : ''}
+        initialCategory={categoryEditDoc ? String(categoryEditDoc.cid) : ""}
       />
 
-      {selectedFile && (
-        <PageViewer selectedFile={selectedFile} onClose={() => setSelectedFile(null)} />
-      )}
+      {selectedFile && <PageViewer selectedFile={selectedFile} onClose={() => setSelectedFile(null)} />}
 
       {showInfoModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
+        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
               <h4 className="text-xl font-semibold text-gray-800">File Information</h4>
-              <button onClick={() => { setShowInfoModal(false); setInfoFileId(null); }} className="text-gray-500 hover:text-gray-700">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <button
+                onClick={() => {
+                  setShowInfoModal(false);
+                  setInfoFileId(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
             {infoData ? (
               <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                   <span className="font-medium text-gray-600">Title:</span>
-                  <span className="text-gray-800">{infoData.title || 'Untitled'}</span>
+                  <span className="text-gray-800">{infoData.title || "Untitled"}</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                   <span className="font-medium text-gray-600">Description:</span>
-                  <span className="text-gray-800">{infoData.description || 'No description'}</span>
+                  <span className="text-gray-800">{infoData.description || "No description"}</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                   <span className="font-medium text-gray-600">Category:</span>
-                  <span className="text-gray-800">{infoData.cid ? getNameById(infoData.cid) : 'Uncategorized'}</span>
+                  <span className="text-gray-800">
+                    {infoData.cid ? getNameById(infoData.cid) : "Uncategorized"}
+                  </span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                   <span className="font-medium text-gray-600">Author:</span>
-                  <span className="text-gray-800">{infoData.author || 'Unknown'}</span>
+                  <span className="text-gray-800">{infoData.author || "Unknown"}</span>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                   <span className="font-medium text-gray-600">Modified at:</span>
-                  <span className="text-gray-800">{infoData.modified_at ? new Date(infoData.modified_at).toLocaleString() : 'Unknown'}</span>
+                  <span className="text-gray-800">
+                    {infoData.modified_at ? new Date(infoData.modified_at).toLocaleString() : "Unknown"}
+                  </span>
                 </div>
                 {infoData.history && infoData.history.length > 0 && (
                   <div className="flex flex-col gap-1">
                     <span className="font-medium text-gray-600">View History:</span>
                     <div className="max-h-32 overflow-y-auto">
                       {infoData.history.map((date, index) => (
-                        <div key={index} className="text-sm text-gray-600">{new Date(date).toLocaleString()}</div>
+                        <div key={index} className="text-sm text-gray-600">
+                          {new Date(date).toLocaleString()}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -312,7 +364,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
               </div>
             ) : (
               <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500" />
               </div>
             )}
           </div>

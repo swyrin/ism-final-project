@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { FaSearch } from 'react-icons/fa';
-import { useQuery } from '@tanstack/react-query';
-import { queries } from '@www/api';
+import { useQuery } from "@tanstack/react-query";
+import { queries } from "@www/api";
+import { useState, useEffect } from "react";
+import { FaSearch } from "react-icons/fa";
 
 interface SearchBarProps {
   setSearchResults: (results: unknown[]) => void;
 }
 
 function SearchBar({ setSearchResults }: SearchBarProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [submittedQuery, setSubmittedQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState("");
 
   const { data = [] } = useQuery({
     ...queries.search(submittedQuery),
@@ -20,24 +20,23 @@ function SearchBar({ setSearchResults }: SearchBarProps) {
   }, [data, setSearchResults]);
 
   const handleSearch = () => {
-    if (!searchQuery) return;
+    if (!searchQuery) {
+      return;
+    }
     setSubmittedQuery(searchQuery);
   };
 
   return (
-    <div className="w-full flex items-center bg-gray-100 p-2 rounded-lg">
-      <FaSearch className="text-gray-400 mr-2" />
+    <div className="flex w-full items-center rounded-lg bg-gray-100 p-2">
+      <FaSearch className="mr-2 text-gray-400" />
       <input
         type="text"
         placeholder="Search for documents..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full bg-transparent border-none focus:outline-none text-gray-700"
+        className="w-full border-none bg-transparent text-gray-700 focus:outline-none"
       />
-      <button
-        onClick={handleSearch}
-        className="ml-2 bg-blue-600 text-white px-3 py-1 rounded"
-      >
+      <button onClick={handleSearch} className="ml-2 rounded bg-blue-600 px-3 py-1 text-white">
         Search
       </button>
     </div>

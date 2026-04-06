@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { FaBell, FaCog, FaSearch, FaUserCircle, FaArrowLeft, FaFileAlt } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import DropdownMenu from '../dashboard/header/DropdownMenu';
-import { queries } from '@www/api';
+import { useQuery } from "@tanstack/react-query";
+import { queries } from "@www/api";
+import { useState, useRef, useEffect } from "react";
+import { FaBell, FaCog, FaSearch, FaUserCircle, FaArrowLeft, FaFileAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
+import DropdownMenu from "../dashboard/header/DropdownMenu";
 
 interface HeaderProps {
   toggleDropdown: () => void;
@@ -11,15 +12,15 @@ interface HeaderProps {
 }
 
 function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!searchQuery) {
-      setDebouncedQuery('');
+      setDebouncedQuery("");
       setShowDropdown(false);
       return;
     }
@@ -40,8 +41,8 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
         setShowDropdown(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSearch = (e: React.SyntheticEvent) => {
@@ -49,29 +50,32 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     } else {
-      navigate('/search');
+      navigate("/search");
     }
     setShowDropdown(false);
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm bg-custom-blue bg-opacity-90 backdrop-blur-md transition-all duration-300">
+    <header className="bg-opacity-90 sticky top-0 z-50 border-b border-gray-200 bg-custom-blue bg-white shadow-sm backdrop-blur-md transition-all duration-300">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between h-auto sm:h-16 py-4 sm:py-0">
-          <div className="flex items-center justify-between w-full sm:hidden mb-4">
+        <div className="flex h-auto flex-col items-start justify-between py-4 sm:h-16 sm:flex-row sm:items-center sm:py-0">
+          <div className="mb-4 flex w-full items-center justify-between sm:hidden">
             <button
-              onClick={() => navigate('/')}
-              className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              onClick={() => navigate("/")}
+              className="flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
               <FaArrowLeft className="mr-2" />
               Back to Dashboard
             </button>
             <div className="flex items-center space-x-4">
-              <button onClick={() => navigate('/notifications')} className="p-2 text-gray-600 hover:text-blue-600 relative">
+              <button
+                onClick={() => navigate("/notifications")}
+                className="relative p-2 text-gray-600 hover:text-blue-600"
+              >
                 <FaBell className="text-xl" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />
               </button>
-              <button onClick={() => navigate('/settings')} className="p-2 text-gray-600 hover:text-blue-600">
+              <button onClick={() => navigate("/settings")} className="p-2 text-gray-600 hover:text-blue-600">
                 <FaCog className="text-xl" />
               </button>
               <div className="relative">
@@ -83,18 +87,18 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center justify-between w-full">
+          <div className="hidden w-full items-center justify-between sm:flex">
             <div className="flex items-center">
               <button
-                onClick={() => navigate('/')}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                onClick={() => navigate("/")}
+                className="flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
               >
                 <FaArrowLeft className="mr-2" />
                 Back to Dashboard
               </button>
             </div>
 
-            <div className="flex-1 max-w-2xl mx-8 relative" ref={dropdownRef}>
+            <div className="relative mx-8 max-w-2xl flex-1" ref={dropdownRef}>
               <form onSubmit={handleSearch} className="relative">
                 <div className="relative">
                   <input
@@ -103,26 +107,33 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setShowDropdown(true)}
                     placeholder="Search documents..."
-                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   />
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <FaSearch className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
                 </div>
               </form>
               {showDropdown && (
-                <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                <div className="absolute right-0 left-0 z-50 mt-2 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
                   {loading ? (
                     <div className="p-4 text-center text-gray-500">Searching...</div>
                   ) : searchResults.length > 0 ? (
                     searchResults.map((result) => (
                       <div
                         key={result.id}
-                        className="flex items-center px-4 py-2 hover:bg-blue-50 cursor-pointer transition"
-                        onClick={() => { navigate(`/page-layout/${result.id}`); setShowDropdown(false); }}
+                        className="flex cursor-pointer items-center px-4 py-2 transition hover:bg-blue-50"
+                        onClick={() => {
+                          navigate(`/page-layout/${result.id}`);
+                          setShowDropdown(false);
+                        }}
                       >
-                        <FaFileAlt className="text-blue-500 mr-3" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-800 truncate">{result.title || 'Untitled'}</div>
-                          <div className="text-xs text-gray-500 truncate">{result.description || 'No description'}</div>
+                        <FaFileAlt className="mr-3 text-blue-500" />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium text-gray-800">
+                            {result.title || "Untitled"}
+                          </div>
+                          <div className="truncate text-xs text-gray-500">
+                            {result.description || "No description"}
+                          </div>
                         </div>
                       </div>
                     ))
@@ -134,11 +145,14 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
             </div>
 
             <div className="flex items-center space-x-4">
-              <button onClick={() => navigate('/notifications')} className="p-2 text-gray-600 hover:text-blue-600 relative">
+              <button
+                onClick={() => navigate("/notifications")}
+                className="relative p-2 text-gray-600 hover:text-blue-600"
+              >
                 <FaBell className="text-xl" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />
               </button>
-              <button onClick={() => navigate('/settings')} className="p-2 text-gray-600 hover:text-blue-600">
+              <button onClick={() => navigate("/settings")} className="p-2 text-gray-600 hover:text-blue-600">
                 <FaCog className="text-xl" />
               </button>
               <div className="relative">
@@ -159,26 +173,31 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowDropdown(true)}
                   placeholder="Search documents..."
-                  className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FaSearch className="absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-400" />
               </div>
             </form>
             {showDropdown && (
-              <div className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+              <div className="absolute right-0 left-0 z-50 mt-2 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
                 {loading ? (
                   <div className="p-4 text-center text-gray-500">Searching...</div>
                 ) : searchResults.length > 0 ? (
                   searchResults.map((result) => (
                     <div
                       key={result.id}
-                      className="flex items-center px-4 py-2 hover:bg-blue-50 cursor-pointer transition"
-                      onClick={() => { navigate(`/page-layout/${result.id}`); setShowDropdown(false); }}
+                      className="flex cursor-pointer items-center px-4 py-2 transition hover:bg-blue-50"
+                      onClick={() => {
+                        navigate(`/page-layout/${result.id}`);
+                        setShowDropdown(false);
+                      }}
                     >
-                      <FaFileAlt className="text-blue-500 mr-3" />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-800 truncate">{result.title || 'Untitled'}</div>
-                        <div className="text-xs text-gray-500 truncate">{result.description || 'No description'}</div>
+                      <FaFileAlt className="mr-3 text-blue-500" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-gray-800">{result.title || "Untitled"}</div>
+                        <div className="truncate text-xs text-gray-500">
+                          {result.description || "No description"}
+                        </div>
                       </div>
                     </div>
                   ))

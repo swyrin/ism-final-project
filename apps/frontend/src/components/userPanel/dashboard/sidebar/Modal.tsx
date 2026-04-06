@@ -1,4 +1,3 @@
-
 interface ModalProps {
   closeModal: () => void;
   siteName: string;
@@ -8,27 +7,21 @@ interface ModalProps {
 
 function Modal({ closeModal, siteName, setSiteName, handleAddSite }: ModalProps) {
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-gray-500 bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-        <h2 className="text-xl font-semibold mb-4">Create New Site</h2>
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-gray-500">
+      <div className="w-1/3 rounded-lg bg-white p-6 shadow-lg">
+        <h2 className="mb-4 text-xl font-semibold">Create New Site</h2>
         <input
           type="text"
           placeholder="Enter site name"
           value={siteName}
           onChange={(e) => setSiteName(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded mb-4"
+          className="mb-4 w-full rounded border border-gray-300 p-2"
         />
         <div className="flex justify-between">
-          <button
-            onClick={closeModal}
-            className="bg-gray-500 text-white px-4 py-2 rounded"
-          >
+          <button onClick={closeModal} className="rounded bg-gray-500 px-4 py-2 text-white">
             Cancel
           </button>
-          <button
-            onClick={handleAddSite}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-          >
+          <button onClick={handleAddSite} className="rounded bg-blue-500 px-4 py-2 text-white">
             Add Site
           </button>
         </div>

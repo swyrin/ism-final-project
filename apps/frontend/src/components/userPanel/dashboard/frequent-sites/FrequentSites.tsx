@@ -1,9 +1,11 @@
-import { useState, Dispatch, SetStateAction, MouseEvent, RefObject } from 'react';
-import { FaStar, FaEllipsisV } from 'react-icons/fa';
-import letterColors from '@www/data/colorData';
-import { useNavigate } from 'react-router-dom';
-import DocMenu from '@www/components/userPanel/dashboard/frequent-sites/docMenu';
-import useClickOutside from '@www/hooks/useClickOutside';
+import type { Dispatch, SetStateAction, MouseEvent, RefObject } from "react";
+
+import DocMenu from "@www/components/userPanel/dashboard/frequent-sites/docMenu";
+import letterColors from "@www/data/colorData";
+import useClickOutside from "@www/hooks/useClickOutside";
+import { useState } from "react";
+import { FaStar, FaEllipsisV } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 interface Document {
   id: string;
@@ -25,12 +27,7 @@ interface FrequentSitesProps {
   onCardClick?: (docId: string) => void;
 }
 
-function FrequentSites({
-  documents = [],
-  setRecentDocuments,
-  handleStar,
-  onCardClick
-}: FrequentSitesProps) {
+function FrequentSites({ documents = [], setRecentDocuments, handleStar, onCardClick }: FrequentSitesProps) {
   const [docMenuVisible, setDocMenuVisible] = useState(false);
   const [docMenuPosition, setDocMenuPosition] = useState<MenuPosition>({ top: 0, left: 0 });
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
@@ -39,9 +36,7 @@ function FrequentSites({
     setDocMenuVisible(false);
   });
 
-  const getBorderColor = (initial: string) => {
-    return letterColors[initial] || 'border-gray-500';
-  };
+  const getBorderColor = (initial: string) => letterColors[initial] || "border-gray-500";
 
   const navigate = useNavigate();
   const handleCardClick = (docId: string) => {
@@ -65,7 +60,7 @@ function FrequentSites({
 
     setDocMenuPosition({
       top: wouldOverflowBottom ? rect.top - menuHeight : rect.bottom,
-      left: wouldOverflowRight ? rect.right - menuWidth : rect.left
+      left: wouldOverflowRight ? rect.right - menuWidth : rect.left,
     });
     setSelectedDoc(doc);
     setDocMenuVisible(true);
@@ -74,7 +69,7 @@ function FrequentSites({
   if (!documents || documents.length === 0) {
     return (
       <div className="w-full lg:w-3/4">
-        <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">Frequent Sites</h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-800 md:text-2xl">Frequent Sites</h2>
         <p className="text-gray-500">No sites available</p>
       </div>
     );
@@ -82,25 +77,25 @@ function FrequentSites({
 
   return (
     <div className="w-full lg:w-3/4">
-      <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">Frequent Sites</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      <h2 className="mb-4 text-xl font-semibold text-gray-800 md:text-2xl">Frequent Sites</h2>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
         {documents.map((doc) => (
           <div
             key={doc.id}
-            className={`p-4 md:p-6 rounded-lg shadow-md ${getBorderColor(doc.title?.[0])} border-l-4 hover:shadow-lg transition duration-300 ease-in-out`}
+            className={`rounded-lg p-4 shadow-md md:p-6 ${getBorderColor(doc.title?.[0])} border-l-4 transition duration-300 ease-in-out hover:shadow-lg`}
             onClick={() => handleCardClick(doc.id)}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: "pointer" }}
           >
-            <div className="flex justify-between items-start">
+            <div className="flex items-start justify-between">
               <div
-                className="font-semibold text-lg md:text-xl text-gray-800 truncate max-w-[140px] md:max-w-[180px]"
-                title={doc.title || 'Untitled'}
+                className="max-w-[140px] truncate text-lg font-semibold text-gray-800 md:max-w-[180px] md:text-xl"
+                title={doc.title || "Untitled"}
               >
-                {doc.title || 'Untitled'}
+                {doc.title || "Untitled"}
               </div>
               <div className="flex items-center gap-2">
                 <FaStar
-                  className={`cursor-pointer text-lg md:text-xl ${doc.starred ? 'text-yellow-400' : 'text-gray-400'}`}
+                  className={`cursor-pointer text-lg md:text-xl ${doc.starred ? "text-yellow-400" : "text-gray-400"}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleStar(doc.id);
@@ -108,7 +103,7 @@ function FrequentSites({
                 />
                 <button
                   onClick={(e) => openDocMenu(e, doc)}
-                  className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition hover:bg-gray-100"
+                  className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
                 >
                   <FaEllipsisV className="text-lg md:text-xl" />
                 </button>
@@ -116,14 +111,14 @@ function FrequentSites({
             </div>
 
             <div className="mt-2 space-y-2">
-              <p className="text-sm md:text-base text-gray-600">
-                Modified: {doc.modified_at ? new Date(doc.modified_at).toLocaleString() : 'No date'}
+              <p className="text-sm text-gray-600 md:text-base">
+                Modified: {doc.modified_at ? new Date(doc.modified_at).toLocaleString() : "No date"}
               </p>
 
               {(doc.views || []).map((view, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-gray-300" />
-                  <p className="text-gray-500 text-xs md:text-sm truncate">{view}</p>
+                  <div className="h-3 w-3 rounded-full bg-gray-300 md:h-4 md:w-4" />
+                  <p className="truncate text-xs text-gray-500 md:text-sm">{view}</p>
                 </div>
               ))}
             </div>
@@ -139,9 +134,7 @@ function FrequentSites({
             isMenuVisible={docMenuVisible}
             onEditSuccess={(id, newTitle) => {
               setRecentDocuments((prevDocs) =>
-                prevDocs.map((doc) =>
-                  doc.id === id ? { ...doc, title: newTitle } : doc
-                )
+                prevDocs.map((doc) => (doc.id === id ? { ...doc, title: newTitle } : doc)),
               );
               setDocMenuVisible(false);
             }}

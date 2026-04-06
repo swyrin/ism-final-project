@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { queries } from '@www/api';
+import { useQuery } from "@tanstack/react-query";
+import { queries } from "@www/api";
+import { useState } from "react";
 
 interface SearchResult {
   id: string;
@@ -15,15 +15,17 @@ interface ModalSearchProps {
 }
 
 function ModalSearch({ isOpen, onClose, onSelect }: ModalSearchProps) {
-  const [keyword, setKeyword] = useState('');
-  const [submittedKeyword, setSubmittedKeyword] = useState('');
+  const [keyword, setKeyword] = useState("");
+  const [submittedKeyword, setSubmittedKeyword] = useState("");
 
   const { data: results = [], isFetching: loading } = useQuery({
     ...queries.search(submittedKeyword),
   });
 
   const handleSearch = () => {
-    if (!keyword) return;
+    if (!keyword) {
+      return;
+    }
     setSubmittedKeyword(keyword);
   };
 
@@ -32,30 +34,26 @@ function ModalSearch({ isOpen, onClose, onSelect }: ModalSearchProps) {
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-30">
-      <div className="bg-white mt-24 rounded-lg shadow-lg p-6 w-full max-w-lg relative">
-        <button
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-          onClick={onClose}
-        >
+    <div className="bg-opacity-30 fixed inset-0 z-50 flex items-start justify-center bg-black">
+      <div className="relative mt-24 w-full max-w-lg rounded-lg bg-white p-6 shadow-lg">
+        <button className="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onClick={onClose}>
           &times;
         </button>
-        <div className="flex mb-4">
+        <div className="mb-4 flex">
           <input
             type="text"
             value={keyword}
-            onChange={e => setKeyword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="Search file name..."
-            className="flex-1 p-2 border border-gray-300 rounded-l"
+            className="flex-1 rounded-l border border-gray-300 p-2"
           />
-          <button
-            onClick={handleSearch}
-            className="bg-blue-600 text-white px-4 rounded-r"
-          >
+          <button onClick={handleSearch} className="rounded-r bg-blue-600 px-4 text-white">
             Search
           </button>
         </div>
@@ -63,10 +61,10 @@ function ModalSearch({ isOpen, onClose, onSelect }: ModalSearchProps) {
           <div className="text-center text-gray-500">Searching...</div>
         ) : (
           <ul>
-            {results.map(file => (
+            {results.map((file) => (
               <li
                 key={file.id}
-                className="p-2 hover:bg-gray-100 cursor-pointer rounded"
+                className="cursor-pointer rounded p-2 hover:bg-gray-100"
                 onClick={() => handleSelect(file)}
               >
                 <div className="font-semibold">{file.title}</div>
@@ -78,7 +76,7 @@ function ModalSearch({ isOpen, onClose, onSelect }: ModalSearchProps) {
               </li>
             ))}
             {results.length === 0 && !loading && (
-              <li className="text-gray-400 text-center">No results found</li>
+              <li className="text-center text-gray-400">No results found</li>
             )}
           </ul>
         )}

@@ -1,4 +1,5 @@
-import { API_URL } from '@www/constant';
+import { queryOptions } from "@tanstack/react-query";
+import { API_URL } from "@www/constant";
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, init);
@@ -25,6 +26,7 @@ export interface FileRecord {
   description: string;
   did: string;
   view: number;
+  fileUrl?: string;
   category_name?: string;
   modified_at?: string;
   history?: string[];
@@ -56,70 +58,59 @@ export interface HomeData {
 
 export const api = {
   home: {
-    get: () => apiFetch<HomeData>('/home'),
+    get: () => apiFetch<HomeData>("/home"),
   },
 
   document: {
     get: (id: string) => apiFetch<Document>(`/document?id=${id}`),
     create: (title: string) =>
-      apiFetch<Document>('/document', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      apiFetch<Document>("/document", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ title }).toString(),
       }),
     rename: (id: string, title: string) =>
-      apiFetch<Document>('/document', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      apiFetch<Document>("/document", {
+        method: "PUT",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ id, title }).toString(),
       }),
     delete: (id: string) =>
-      apiFetch<{ message: string }>('/document', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      apiFetch<{ message: string }>("/document", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ id }).toString(),
       }),
   },
 
   file: {
-    getInfo: (id: string) => apiFetch<FileRecord>(`/file?id=${id}&detail=1`),
-    upload: (formData: FormData) =>
-      apiFetch<FileRecord>('/file', { method: 'POST', body: formData }),
-    update: (params: URLSearchParams) =>
-      apiFetch<FileRecord>('/file', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    getInfo: (id: string) => apiFetch<FileRecord>(`/file/${id}`),
+    upload: (formData: FormData) => apiFetch<FileRecord>("/file", { method: "POST", body: formData }),
+    update: (id: string, params: URLSearchParams) =>
+      apiFetch<FileRecord>(`/file/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: params.toString(),
       }),
-    delete: (id: string) =>
-      apiFetch<{ message: string }>('/file', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ id }).toString(),
-      }),
-    addView: (id: string) =>
-      apiFetch<FileRecord>('/file', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ id }).toString(),
-      }),
+    delete: (id: string) => apiFetch<{ message: string }>(`/file/${id}`, { method: "DELETE" }),
+    addView: (id: string) => apiFetch<FileRecord>(`/file/${id}`, { method: "PATCH" }),
   },
 
   category: {
     list: () =>
-      apiFetch<Category[]>('/category').then((cats) =>
-        [...cats].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+      apiFetch<Category[]>("/category").then((cats) =>
+        [...cats].toSorted((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())),
       ),
     create: (name: string) =>
-      apiFetch<Category>('/category', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      apiFetch<Category>("/category", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       }),
     delete: (id: number) =>
-      apiFetch<{ message: string }>('/category', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      apiFetch<{ message: string }>("/category", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ id: String(id) }).toString(),
       }),
   },
@@ -130,36 +121,75 @@ export const api = {
 };
 
 export const queryKeys = {
-  home: ['home'] as const,
-  document: (id: string) => ['document', id] as const,
-  categories: ['categories'] as const,
-  search: (q: string) => ['search', q] as const,
-  fileInfo: (id: string) => ['file', id, 'info'] as const,
+  home: ["home"] as const,
+  document: (id: string) => ["document", id] as const,
+  categories: ["categories"] as const,
+  search: (q: string) => ["search", q] as const,
+  fileInfo: (id: string) => ["file", id, "info"] as const,
 };
 
-import { queryOptions } from '@tanstack/react-query';
-
 export const queries = {
-  home: () => queryOptions({
-    queryKey: queryKeys.home,
-    queryFn: api.home.get,
-  }),
-  document: (id: string) => queryOptions({
-    queryKey: queryKeys.document(id),
-    queryFn: () => api.document.get(id),
-  }),
-  categories: () => queryOptions({
-    queryKey: queryKeys.categories,
-    queryFn: api.category.list,
-  }),
-  search: (q: string) => queryOptions({
-    queryKey: queryKeys.search(q),
-    queryFn: () => api.search.query(q),
-    enabled: !!q,
-  }),
-  fileInfo: (id: string) => queryOptions({
-    queryKey: queryKeys.fileInfo(id),
-    queryFn: () => api.file.getInfo(id),
-    enabled: !!id,
-  }),
+  home: () =>
+    queryOptions({
+      queryKey: queryKeys.home,
+      queryFn: api.home.get,
+    }),
+  document: (id: string) =>
+    queryOptions({
+      queryKey: queryKeys.document(id),
+      queryFn: () => api.document.get(id),
+    }),
+  categories: () =>
+    queryOptions({
+      queryKey: queryKeys.categories,
+      queryFn: api.category.list,
+    }),
+  search: (q: string) =>
+    queryOptions({
+      queryKey: queryKeys.search(q),
+      queryFn: () => api.search.query(q),
+      enabled: Boolean(q),
+    }),
+  fileInfo: (id: string) =>
+    queryOptions({
+      queryKey: queryKeys.fileInfo(id),
+      queryFn: () => api.file.getInfo(id),
+      enabled: Boolean(id),
+    }),
+};
+
+export const mutations = {
+  document: {
+    create: {
+      mutationFn: (title: string) => api.document.create(title),
+    },
+    rename: {
+      mutationFn: ({ id, title }: { id: string; title: string }) => api.document.rename(id, title),
+    },
+    delete: {
+      mutationFn: (id: string) => api.document.delete(id),
+    },
+  },
+  file: {
+    upload: {
+      mutationFn: (formData: FormData) => api.file.upload(formData),
+    },
+    update: {
+      mutationFn: ({ id, params }: { id: string; params: URLSearchParams }) => api.file.update(id, params),
+    },
+    delete: {
+      mutationFn: (id: string) => api.file.delete(id),
+    },
+    addView: {
+      mutationFn: (id: string) => api.file.addView(id),
+    },
+  },
+  category: {
+    create: {
+      mutationFn: (name: string) => api.category.create(name),
+    },
+    delete: {
+      mutationFn: (id: number) => api.category.delete(id),
+    },
+  },
 };

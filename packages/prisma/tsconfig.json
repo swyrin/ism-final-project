@@ -1,8 +1,4 @@
 {
   "extends": "@ism/tsconfig/node",
-  "compilerOptions": {
-    "rootDir": ".",
-    "outDir": "./dist"
-  },
   "include": ["src", "generated"]
 }

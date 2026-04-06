@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FaSpinner, FaArrowLeft } from 'react-icons/fa';
-import { useQuery } from '@tanstack/react-query';
-import Header from '@www/components/userPanel/knowledgeBase/Header';
-import Body from '@www/components/userPanel/knowledgeBase/Body';
-import { type FileRecord, type Document, queries } from '@www/api';
+import { useQuery } from "@tanstack/react-query";
+import { type FileRecord, type Document, queries } from "@www/api";
+import Body from "@www/components/userPanel/knowledgeBase/Body";
+import Header from "@www/components/userPanel/knowledgeBase/Header";
+import { useEffect, useState } from "react";
+import { FaSpinner, FaArrowLeft } from "react-icons/fa";
+import { useParams, useNavigate } from "react-router-dom";
 
 function PageLayout() {
   const { id } = useParams<{ id: string }>();
@@ -14,7 +14,7 @@ function PageLayout() {
 
   const { data, isLoading, isError } = useQuery({
     ...queries.document(id!),
-    enabled: !!id,
+    enabled: Boolean(id),
   });
 
   useEffect(() => {
@@ -25,13 +25,13 @@ function PageLayout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <FaSpinner className="animate-spin text-4xl text-blue-600 mx-auto mb-4" />
+          <FaSpinner className="mx-auto mb-4 animate-spin text-4xl text-blue-600" />
           <p className="text-gray-600">Loading document...</p>
           <button
-            onClick={() => navigate('/dashboard')}
-            className="mt-4 flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors mx-auto"
+            onClick={() => navigate("/dashboard")}
+            className="mx-auto mt-4 flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
           >
             <FaArrowLeft className="mr-2" />
             Back to Dashboard
@@ -43,15 +43,15 @@ function PageLayout() {
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
           <div className="text-center">
-            <div className="text-red-500 text-5xl mb-4">⚠️</div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Error</h2>
+            <div className="mb-4 text-5xl text-red-500">⚠️</div>
+            <h2 className="mb-2 text-2xl font-semibold text-gray-800">Error</h2>
             <p className="text-gray-600">Error fetching document</p>
             <button
-              onClick={() => navigate('/dashboard')}
-              className="mt-4 flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors mx-auto"
+              onClick={() => navigate("/dashboard")}
+              className="mx-auto mt-4 flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
               <FaArrowLeft className="mr-2" />
               Back to Dashboard
@@ -64,15 +64,17 @@ function PageLayout() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
           <div className="text-center">
-            <div className="text-gray-400 text-5xl mb-4">📄</div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Document Not Found</h2>
-            <p className="text-gray-600">The document you're looking for doesn't exist or has been removed.</p>
+            <div className="mb-4 text-5xl text-gray-400">📄</div>
+            <h2 className="mb-2 text-2xl font-semibold text-gray-800">Document Not Found</h2>
+            <p className="text-gray-600">
+              The document you're looking for doesn't exist or has been removed.
+            </p>
             <button
-              onClick={() => navigate('/dashboard')}
-              className="mt-4 flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors mx-auto"
+              onClick={() => navigate("/dashboard")}
+              className="mx-auto mt-4 flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
             >
               <FaArrowLeft className="mr-2" />
               Back to Dashboard
@@ -84,9 +86,9 @@ function PageLayout() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <Header toggleDropdown={toggleDropdown} dropdownOpen={dropdownOpen} />
-      <div className="max-w-7xl mx-auto py-6 w-full">
+      <div className="mx-auto w-full max-w-7xl py-6">
         <Body
           filteredDocuments={filteredDocuments}
           setFilteredDocuments={setFilteredDocuments}

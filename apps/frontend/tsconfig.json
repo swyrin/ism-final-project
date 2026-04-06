@@ -2,19 +2,10 @@
   "extends": "@ism/tsconfig/react",
   "compilerOptions": {
     "types": ["vite/client"],
-    "baseUrl": ".",
     "paths": {
-      "@www/*": [
-        "./src/*"
-      ]
+      "@www/*": ["./src/*"]
     }
   },
-  "include": [
-    "src",
-    "vite.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "build"
-  ]
+  "include": ["src", "vite.config.ts"],
+  "exclude": ["node_modules", "build"]
 }

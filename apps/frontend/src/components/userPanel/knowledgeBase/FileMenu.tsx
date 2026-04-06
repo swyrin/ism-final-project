@@ -1,6 +1,9 @@
-import { useState, useEffect, CSSProperties, RefObject } from 'react';
-import { FaEdit, FaTrash, FaDownload, FaInfoCircle, FaTag } from 'react-icons/fa';
-import useClickOutside from '../../../hooks/useClickOutside';
+import type { CSSProperties, RefObject } from "react";
+
+import { useState, useEffect } from "react";
+import { FaEdit, FaTrash, FaDownload, FaInfoCircle, FaTag } from "react-icons/fa";
+
+import useClickOutside from "../../../hooks/useClickOutside";
 
 interface MenuPosition {
   top: number;
@@ -29,7 +32,7 @@ function FileMenu({
   onEditDescription,
   onEditCategory,
   onInfo,
-  onClose
+  onClose,
 }: FileMenuProps) {
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
 
@@ -42,29 +45,31 @@ function FileMenu({
   useEffect(() => {
     if (menuPosition && isMenuVisible) {
       setMenuStyle({
-        position: 'absolute',
+        position: "absolute",
         top: `${menuPosition.top + 24}px`,
         left: `${menuPosition.left}px`,
-        zIndex: 50
+        zIndex: 50,
       });
     }
   }, [menuPosition, isMenuVisible]);
 
-  if (!isMenuVisible) return null;
+  if (!isMenuVisible) {
+    return null;
+  }
 
   const menuItems = [
-    { icon: <FaEdit className="w-4 h-4" />, text: "Edit Name", onClick: onEdit },
-    { icon: <FaEdit className="w-4 h-4" />, text: "Edit Description", onClick: onEditDescription },
-    { icon: <FaTag className="w-4 h-4" />, text: "Change Category", onClick: onEditCategory },
-    { icon: <FaDownload className="w-4 h-4" />, text: "Download", onClick: onDownload },
-    { icon: <FaInfoCircle className="w-4 h-4" />, text: "Info", onClick: onInfo },
-    { icon: <FaTrash className="w-4 h-4" />, text: "Delete", onClick: onDelete, isDanger: true }
+    { icon: <FaEdit className="h-4 w-4" />, text: "Edit Name", onClick: onEdit },
+    { icon: <FaEdit className="h-4 w-4" />, text: "Edit Description", onClick: onEditDescription },
+    { icon: <FaTag className="h-4 w-4" />, text: "Change Category", onClick: onEditCategory },
+    { icon: <FaDownload className="h-4 w-4" />, text: "Download", onClick: onDownload },
+    { icon: <FaInfoCircle className="h-4 w-4" />, text: "Info", onClick: onInfo },
+    { icon: <FaTrash className="h-4 w-4" />, text: "Delete", onClick: onDelete, isDanger: true },
   ];
 
   return (
     <div
       ref={menuRef as RefObject<HTMLDivElement>}
-      className="w-12 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
+      className="w-12 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
       style={menuStyle}
     >
       {menuItems.map((item, index) => (
@@ -72,10 +77,8 @@ function FileMenu({
           key={index}
           onClick={item.onClick}
           title={item.text}
-          className={`w-full px-3 py-2 text-left text-sm flex items-center justify-center ${
-            item.isDanger
-              ? 'text-red-600 hover:bg-red-50'
-              : 'text-gray-700 hover:bg-gray-100'
+          className={`flex w-full items-center justify-center px-3 py-2 text-left text-sm ${
+            item.isDanger ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-gray-100"
           }`}
         >
           {item.icon}

@@ -1,77 +1,100 @@
-import express from "express";
+import prisma from "@ism/prisma";
 import * as fileService from "@srv/services/fileService";
-import upload from "@srv/utils/multerConfig";
+import { HttpError } from "@srv/utils/HttpError";
+import express from "express";
+import multer from "multer";
+import { v4 as uuidv4 } from "uuid";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-    const { id, detail, download } = req.query as Record<string, string | undefined>;
-
-    if (!id) {
-        res.status(400).json({ message: "missing parameter." });
-        return;
+async function generateFileId(): Promise<string> {
+  while (true) {
+    const id = uuidv4();
+    const existing = await prisma.file.findUnique({ where: { id }, select: { id: true } });
+    if (!existing) {
+      return id;
     }
+  }
+}
 
-    if (!detail) {
-        fileService.getFile(id, (status, data) => {
-            if (status === 200) {
-                const { filePath, fileName } = data as { filePath: string; fileName: string };
-
-                if (download) {
-                    res.download(filePath, fileName, (err) => {
-                        if (err) res.status(404).json({ message: "file not found." });
-                    });
-                } else {
-                    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-                    res.sendFile(filePath, (err) => {
-                        if (err) res.status(404).json({ message: "file not found." });
-                    });
-                }
-            } else {
-                res.status(404).json({ message: "file not found." });
-            }
-        });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === "application/pdf") {
+      cb(null, true);
     } else {
-        fileService.getFileInformation(id, (status, data) => {
-            res.status(status).json(data);
-        });
+      cb(new Error("allow PDF file only."));
     }
+  },
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    res.json(await fileService.getFileInformation(req.params.id));
+  } catch (error) {
+    if (error instanceof HttpError) res.status(error.status).json({ error: error.error });
+    else {
+      res.status(500).json({ error: "internal error." });
+    }
+  }
 });
 
 router.post(
-    "/",
-    upload.single("attachment"),
-    (req, res) => {
-        if (!req.file) {
-            res.status(400).json({ message: "not upload any file." });
-            return;
-        }
-
-        fileService.createFile(req.body, req.savedFileId!, (status, data) => {
-            res.status(status).json(data);
-        });
-    },
-    (err: Error, _req: never, res: never, _next: never) => {
-        (res as unknown as import("express").Response).status(400).json({ message: err.message });
+  "/",
+  upload.single("attachment"),
+  async (req, res) => {
+    if (!req.file) {
+      res.status(400).json({ error: "not upload any file." });
+      return;
     }
+    try {
+      const fid = await generateFileId();
+      const data = await fileService.createFile(req.body, fid, req.file.buffer, req.file.mimetype);
+      res.status(200).json(data);
+    } catch (error) {
+      if (error instanceof HttpError) res.status(error.status).json({ message: error.message });
+      else {
+        res.status(500).json({ message: "internal error." });
+      }
+    }
+  },
+  (err: Error, _req: never, res: never, _next: never) => {
+    (res as unknown as import("express").Response).status(400).json({ error: err.message });
+  },
 );
 
-router.put("/", (req, res) => {
-    fileService.editFileInformation(req.body, (status, data) => {
-        res.status(status).json(data);
-    });
+router.put("/:id", async (req, res) => {
+  try {
+    res.json(await fileService.editFileInformation(req.params.id, req.body));
+  } catch (error) {
+    if (error instanceof HttpError) res.status(error.status).json({ error: error.error });
+    else {
+      res.status(500).json({ error: "internal error." });
+    }
+  }
 });
 
-router.patch("/", (req, res) => {
-    fileService.addView(req.body, (status, data) => {
-        res.status(status).json(data);
-    });
+router.patch("/:id", async (req, res) => {
+  try {
+    res.json(await fileService.addView(req.params.id));
+  } catch (error) {
+    if (error instanceof HttpError) res.status(error.status).json({ error: error.error });
+    else {
+      res.status(500).json({ error: "internal error." });
+    }
+  }
 });
 
-router.delete("/", (req, res) => {
-    fileService.deleteFile(req.body, (status, data) => {
-        res.status(status).json(data);
-    });
+router.delete("/:id", async (req, res) => {
+  try {
+    res.json(await fileService.deleteFile(req.params.id));
+  } catch (error) {
+    if (error instanceof HttpError) res.status(error.status).json({ error: error.error });
+    else {
+      res.status(500).json({ error: "internal error." });
+    }
+  }
 });
 
 export default router;
