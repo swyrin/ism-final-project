@@ -1,13 +1,23 @@
 {
-  "name": "ISM",
+  "name": "ism",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "pnpm -r --parallel --if-present dev",
+    "build": "pnpm -r --parallel --if-present build",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "db:push": "pnpm --filter @ism/prisma db:push",
+    "db:studio": "pnpm --filter @ism/prisma db:studio",
+    "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.1",
+    "oxfmt": "0.41.0",
+    "oxlint": "1.56.0",
+    "oxlint-tsgolint": "0.17.0",
+    "typescript": "^5.7.3"
+  },
   "packageManager": "pnpm@10.30.1"
 }

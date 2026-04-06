@@ -1,0 +1,20 @@
+{
+  "extends": "@ism/tsconfig/node",
+  "compilerOptions": {
+    "rootDir": "./",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@srv/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

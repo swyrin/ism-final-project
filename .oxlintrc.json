@@ -1,0 +1,39 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "eslint", "unicorn", "node", "promise"],
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "categories": {
+    "correctness": "error",
+    "restriction": "error",
+    "perf": "warn",
+    "style": "warn",
+    "suspicious": "error",
+    "pedantic": "off",
+    "nursery": "off"
+  },
+  "ignorePatterns": ["packages/prisma/generated/*"],
+  "rules": {
+    "eslint/capitalized-comments": "off",
+    "eslint/sort-keys": "off",
+    "eslint/sort-imports": "off",
+    "eslint/no-ternary": "off",
+    "eslint/id-length": "off",
+    "eslint/no-magic-numbers": "off",
+    "eslint/func-style": "off",
+    "eslint/new-cap": "off",
+    "eslint/max-statements": ["error", { "max": 20 }],
+    "typescript/explicit-function-return-type": "off",
+    "typescript/explicit-module-return-type": "off",
+    "typescript/explicit-module-boundary-types": "off",
+    "node/no-process-env": "off",
+    "import/no-unassigned-import": [
+      "error",
+      {
+        "allow": ["dotenv/config"]
+      }
+    ]
+  }
+}
