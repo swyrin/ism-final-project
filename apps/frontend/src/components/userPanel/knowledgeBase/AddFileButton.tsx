@@ -100,9 +100,9 @@ function AddFileButton({ setFilteredDocuments, documentId }: AddFileButtonProps)
 
     const fd = new globalThis.FormData();
     fd.append("title", formData.title);
-    fd.append("cid", formData.category);
+    fd.append("category_id", formData.category);
     fd.append("author", formData.author);
-    fd.append("did", documentId);
+    fd.append("document_id", documentId);
     fd.append("description", formData.content);
     fd.append("attachment", formData.file);
 

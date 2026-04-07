@@ -1,29 +1,29 @@
-import prisma from "@ism/prisma";
 import * as minioService from "@srv/infra/storage/minioService";
-import { HttpError } from "@srv/utils/HttpError";
+import * as categoryRepository from "@srv/repository/categoryRepository";
+import * as documentRepository from "@srv/repository/documentRepository";
+import * as fileRepository from "@srv/repository/fileRepository";
+import { BadRequestError, NotFoundError } from "@srv/utils/HttpError";
 
 function formatFile(file: {
   id: string;
   title: string;
-  cid: number;
+  category_id: number;
   author: string;
   description: string;
-  did: string;
+  document_id: string;
   view: number;
   storagePath: string;
   category?: { name: string };
-  history: { fid: string; modified_at: Date }[];
+  history: { file_id: string; modified_at: Date }[];
 }) {
-  const sortedHistory = [...file.history].toSorted(
-    (a, b) => b.modified_at.getTime() - a.modified_at.getTime(),
-  );
+  const sortedHistory = [...file.history].sort((a, b) => b.modified_at.getTime() - a.modified_at.getTime());
   return {
     id: file.id,
     title: file.title,
-    cid: file.cid,
+    category_id: file.category_id,
     author: file.author,
     description: file.description,
-    did: file.did,
+    document_id: file.document_id,
     view: file.view,
     ...(file.category && { category_name: file.category.name }),
     modified_at: sortedHistory[0]?.modified_at.toISOString(),
@@ -31,52 +31,63 @@ function formatFile(file: {
   };
 }
 
+function fileSummary(file: {
+  id: string;
+  title: string;
+  storagePath: string;
+  history: { file_id: string; modified_at: Date }[];
+}) {
+  const sortedHistory = [...file.history].sort((a, b) => b.modified_at.getTime() - a.modified_at.getTime());
+  return {
+    id: file.id,
+    title: file.title,
+    modified_at: sortedHistory[0]?.modified_at.toISOString(),
+    storagePath: minioService.buildFileUrl(file.storagePath),
+  };
+}
+
 export const createFile = async (
+  user_id: string,
   body: Record<string, unknown>,
-  fid: string,
   buffer: Buffer,
   contentType: string,
 ): Promise<ReturnType<typeof formatFile>> => {
-  const { title, cid, author, did, description } = body as {
+  const { title, category_id, author, document_id, description } = body as {
     title?: string;
-    cid?: string;
+    category_id?: string;
     author?: string;
-    did?: string;
+    document_id?: string;
     description?: string;
   };
 
-  if (!(title && cid && author && did && description)) {
-    throw new HttpError(400, "missing parameter.");
+  if (!(title && category_id && author && document_id && description)) {
+    throw new BadRequestError("missing parameter.");
   }
 
-  const category = await prisma.category.findUnique({ where: { id: Number.parseInt(cid, 10) } });
+  const fileId = await fileRepository.generateFileId();
+
+  const category = await categoryRepository.getCategoryById(category_id);
   if (!category) {
-    throw new HttpError(404, "category not found.");
+    throw new NotFoundError("category not found.");
   }
 
-  const document = await prisma.document.findUnique({ where: { id: did } });
+  const document = await documentRepository.getDocumentById(document_id);
   if (!document) {
-    throw new HttpError(404, "document not found.");
+    throw new NotFoundError("document not found.");
   }
 
-  const storageKey = `${fid}.pdf`;
+  const storageKey = `${fileId}.pdf`;
   await minioService.uploadFile(storageKey, buffer, contentType);
 
   let file;
   try {
-    file = await prisma.file.create({
-      data: {
-        id: fid,
-        title,
-        cid: Number.parseInt(cid, 10),
-        author,
-        description,
-        did,
-        view: 0,
-        storagePath: storageKey,
-        history: { create: { modified_at: new Date() } },
-      },
-      include: { category: true, history: true },
+    file = await fileRepository.createFile(user_id, fileId, {
+      title,
+      category_id,
+      author,
+      description,
+      document_id,
+      storageKey,
     });
   } catch (error) {
     await minioService.deleteFile(storageKey);
@@ -87,50 +98,48 @@ export const createFile = async (
 };
 
 export const editFileInformation = async (
+  user_id: string,
   id: string,
   body: Record<string, unknown>,
 ): Promise<ReturnType<typeof formatFile>> => {
-  const { title, cid, description } = body as {
+  const { title, category_id, description } = body as {
     title?: string;
-    cid?: string;
+    category_id?: string;
     description?: string;
   };
 
-  if (!title && !cid && !description) {
-    throw new HttpError(400, "missing parameter.");
+  if (!title && !category_id && !description) {
+    throw new BadRequestError("missing parameter.");
   }
 
-  if (cid) {
-    const category = await prisma.category.findUnique({ where: { id: Number.parseInt(cid, 10) } });
+  const fileExists = await fileRepository.isFileExist(user_id, id);
+  if (!fileExists) {
+    throw new NotFoundError("file not found.");
+  }
+
+  if (category_id) {
+    const category = await categoryRepository.getCategoryById(category_id);
     if (!category) {
-      throw new HttpError(404, "category not found.");
+      throw new NotFoundError("category not found.");
     }
   }
 
-  const file = await prisma.file.update({
-    where: { id },
-    data: {
-      ...(title && { title }),
-      ...(cid && { cid: Number.parseInt(cid, 10) }),
-      ...(description && { description }),
-      history: { create: { modified_at: new Date() } },
-    },
-    include: { category: true, history: true },
+  const file = await fileRepository.editFileInformation(user_id, id, {
+    category_id,
+    title,
+    description,
   });
-
   return formatFile(file);
 };
 
 export const getFileInformation = async (
+  user_id: string,
   id: string,
 ): Promise<ReturnType<typeof formatFile> & { fileUrl: string }> => {
-  const file = await prisma.file.findUnique({
-    where: { id },
-    include: { history: true },
-  });
+  const file = await fileRepository.getFileInformation(user_id, id);
 
   if (!file) {
-    throw new HttpError(404, "file not found.");
+    throw new NotFoundError("file not found.");
   }
 
   return {
@@ -139,33 +148,34 @@ export const getFileInformation = async (
   };
 };
 
-export const deleteFile = async (id: string): Promise<{ message: string }> => {
-  const file = await prisma.file.findUnique({
-    where: { id },
-    select: { storagePath: true },
-  });
+export const deleteFile = async (user_id: string, id: string): Promise<{ message: string }> => {
+  const file = await fileRepository.getFileInformation(user_id, id);
 
   if (!file) {
-    throw new HttpError(404, "file not found.");
+    throw new NotFoundError("file not found.");
   }
 
-  await prisma.file.delete({ where: { id } });
+  await fileRepository.deleteFile(user_id, id);
   await minioService.deleteFile(file.storagePath);
 
   return { message: "delete successfully." };
 };
 
-export const addView = async (id: string): Promise<ReturnType<typeof formatFile>> => {
-  const existing = await prisma.file.findUnique({ where: { id }, select: { id: true } });
+export const getFilesByDocumentId = async (
+  user_id: string,
+  document_id: string,
+  category_id?: string,
+): Promise<ReturnType<typeof fileSummary>[]> => {
+  const files = await fileRepository.getFilesByDocumentId(user_id, document_id, category_id);
+  return files.map(fileSummary);
+};
+
+export const addView = async (user_id: string, id: string): Promise<ReturnType<typeof formatFile>> => {
+  const existing = await fileRepository.isFileExist(user_id, id);
   if (!existing) {
-    throw new HttpError(404, "file not found.");
+    throw new NotFoundError("file not found.");
   }
 
-  const file = await prisma.file.update({
-    where: { id },
-    data: { view: { increment: 1 } },
-    include: { history: true },
-  });
-
+  const file = await fileRepository.addView(id);
   return formatFile(file);
 };

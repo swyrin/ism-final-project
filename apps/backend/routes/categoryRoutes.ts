@@ -6,8 +6,16 @@ const router = express.Router();
 
 function handleError(err: unknown, res: express.Response) {
   if (err instanceof HttpError) {
+    console.error("[HttpError]", {
+      message: err.error,
+      status: err.status,
+      stack: err.stack,
+    });
+
     res.status(err.status).json({ error: err.error });
   } else {
+    console.error("[UnknownError]", err);
+
     res.status(500).json({ error: "internal error." });
   }
 }

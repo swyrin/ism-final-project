@@ -1,6 +1,3 @@
-// Prisma schema for ISM (Knowledge Management System)
-// Maps to the existing SQLite database schema
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -18,11 +15,11 @@ model Document {
 }
 
 model DocumentHistory {
-  did         String
+  document_id String   @map("did")
   modified_at DateTime
-  document    Document @relation(fields: [did], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  document    Document @relation(fields: [document_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@id([did, modified_at])
+  @@id([document_id, modified_at])
   @@map("Document_History")
 }
 
@@ -33,24 +30,77 @@ model Category {
 }
 
 model File {
+  user_id     String
   id          String        @id
   title       String
-  cid         Int
+  category_id Int           @map("cid")
   author      String
   description String
-  did         String
+  document_id String        @map("did")
   view        Int           @default(0)
   storagePath String        @default("")
-  category    Category      @relation(fields: [cid], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  document    Document      @relation(fields: [did], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category    Category      @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  document    Document      @relation(fields: [document_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   history     FileHistory[]
+  user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model FileHistory {
-  fid         String
+  file_id     String   @map("fid")
   modified_at DateTime
-  file        File     @relation(fields: [fid], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  file        File     @relation(fields: [file_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@id([fid, modified_at])
+  @@id([file_id, modified_at])
   @@map("File_History")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
+  files         File[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
 }

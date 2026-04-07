@@ -158,7 +158,7 @@ function SearchPage() {
   const handleEditCategory = (id: string) => {
     const doc = searchResults.find((d) => d.id === id);
     setEditingDocId(id);
-    setInitialCategory(doc?.cid || "");
+    setInitialCategory(doc?.category_id || "");
     setShowCategoryModal(true);
   };
 
@@ -166,7 +166,7 @@ function SearchPage() {
     if (!editingDocId) {
       return;
     }
-    updateFileMutation.mutate(new URLSearchParams({ id: editingDocId, cid: newCategory }));
+    updateFileMutation.mutate(new URLSearchParams({ id: editingDocId, category_id: newCategory }));
   };
 
   const handleDeleteFile = (id: string) => {

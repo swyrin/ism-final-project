@@ -15,7 +15,7 @@ async function generateId(): Promise<string> {
 function formatDocument(doc: {
   id: string;
   title: string;
-  history: { did: string; modified_at: Date }[];
+  history: { document_id: string; modified_at: Date }[];
   files?: unknown[];
 }) {
   const sortedHistory = [...doc.history].toSorted(
@@ -38,11 +38,11 @@ export const createDocument = async (
     throw new HttpError(400, "missing parameter.");
   }
 
-  const did = await generateId();
+  const document_id = await generateId();
 
   const doc = await prisma.document.create({
     data: {
-      id: did,
+      id: document_id,
       title,
       history: { create: { modified_at: new Date() } },
     },
@@ -84,10 +84,10 @@ export const getDocument = async (
     return {
       id: file.id,
       title: file.title,
-      cid: file.cid,
+      category_id: file.category_id,
       author: file.author,
       description: file.description,
-      did: file.did,
+      document_id: file.document_id,
       view: file.view,
       category_name: file.category.name,
       modified_at: sortedHistory[0]?.modified_at.toISOString(),
@@ -134,7 +134,6 @@ export const deleteDocument = async (body: Record<string, unknown>): Promise<{ m
     throw new HttpError(404, "document not found.");
   }
 
-  // Cascade deletes File, FileHistory, DocumentHistory
   await prisma.document.delete({ where: { id } });
 
   return { message: "delete successfully." };

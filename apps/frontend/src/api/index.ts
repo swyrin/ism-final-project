@@ -21,10 +21,10 @@ export interface Document {
 export interface FileRecord {
   id: string;
   title: string;
-  cid: string | number;
+  category_id: string | number;
   author: string;
   description: string;
-  did: string;
+  document_id: string;
   view: number;
   fileUrl?: string;
   category_name?: string;
@@ -44,9 +44,9 @@ export interface SearchResult {
   description?: string;
   category?: string;
   category_name?: string;
-  cid?: string;
+  category_id?: string;
   author?: string;
-  did?: string;
+  document_id?: string;
   modified_at?: string;
 }
 

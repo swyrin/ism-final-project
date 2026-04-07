@@ -163,7 +163,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
     if (!categoryEditDoc) {
       return;
     }
-    const params = new URLSearchParams({ id: categoryEditDoc.id, cid: categoryId });
+    const params = new URLSearchParams({ id: categoryEditDoc.id, category_id: categoryId });
     updateFileMutation.mutate(params);
   };
 
@@ -296,7 +296,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
           setCategoryEditDoc(null);
         }}
         onSave={handleSaveCategory}
-        initialCategory={categoryEditDoc ? String(categoryEditDoc.cid) : ""}
+        initialCategory={categoryEditDoc ? String(categoryEditDoc.category_id) : ""}
       />
 
       {selectedFile && <PageViewer selectedFile={selectedFile} onClose={() => setSelectedFile(null)} />}
@@ -336,7 +336,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
                 <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                   <span className="font-medium text-gray-600">Category:</span>
                   <span className="text-gray-800">
-                    {infoData.cid ? getNameById(infoData.cid) : "Uncategorized"}
+                    {infoData.category_id ? getNameById(infoData.category_id) : "Uncategorized"}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">

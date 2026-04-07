@@ -1,10 +1,12 @@
 import "dotenv/config";
+import { auth } from "@srv/lib/auth";
 import categoryRouter from "@srv/routes/categoryRoutes";
 import documentRouter from "@srv/routes/documentRoutes";
 import fileRouter from "@srv/routes/fileRoutes";
 import homeRouter from "@srv/routes/homeRoutes";
 import indexRouter from "@srv/routes/index";
 import searchRouter from "@srv/routes/searchRoutes";
+import { toNodeHandler } from "better-auth/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
@@ -20,6 +22,10 @@ app.use(
   }),
 );
 app.use(logger("dev"));
+
+// better-auth handler — must be before body parsers so it can read raw request bodies
+app.all("/api/auth/*splat", toNodeHandler(auth));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

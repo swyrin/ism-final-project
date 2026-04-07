@@ -28,7 +28,7 @@ function Body({ filteredDocuments, setFilteredDocuments, documentId, document }:
     let filtered = [...originalDocuments];
 
     if (category !== "all") {
-      filtered = filtered.filter((doc) => String(doc.cid) === String(category));
+      filtered = filtered.filter((doc) => String(doc.category_id) === String(category));
     }
 
     const sorted = filtered.toSorted((a, b) => {

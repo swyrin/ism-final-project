@@ -33,5 +33,5 @@ export async function deleteFile(key: string): Promise<void> {
 }
 
 export function buildFileUrl(key: string): string {
-  return `${process.env.MINIO_ENDPOINT}/${bucket}/${key}`;
+  return `${process.env.S3_ENDPOINT}/${bucket}/${key}`;
 }
