@@ -45,6 +45,17 @@ model File {
   user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
+model Share {
+  id      String @id
+  user_id String
+
+  title       String
+  author      String
+  description String
+  storagePath String @default("")
+  user        User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
 model FileHistory {
   file_id     String   @map("fid")
   modified_at DateTime
@@ -65,6 +76,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   files         File[]
+  shares        Share[]
 }
 
 model Session {
