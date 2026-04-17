@@ -1,39 +1,43 @@
 import prisma from "@ism/prisma";
 import { v4 as uuidv4 } from "uuid";
 
-export async function createShareFile(
-  user_id: string,
-  share_id: string,
-  data: {
-    title: string;
-    author: string;
-    description: string;
-    storageKey: string;
-  },
-) {
+export async function createShare(user_id: string, file_id: string) {
   return await prisma.share.create({
     data: {
-      id: share_id,
-      user_id: user_id,
-      title: data.title,
-      author: data.author,
-      description: data.description,
-      storagePath: data.storageKey,
+      id: uuidv4(),
+      user_id,
+      file_id,
+      isActive: true,
     },
   });
 }
-export async function deleteShareFile(user_id: string, file_id: string) {
-  return await prisma.share.delete({
+
+export async function listActiveSharesForFile(user_id: string, file_id: string) {
+  return await prisma.share.findMany({
     where: {
-      id: file_id,
-      user_id: user_id,
+      file_id,
+      user_id,
+      isActive: true,
     },
+    orderBy: { createdAt: "desc" },
   });
 }
-export async function getShareFile(share_id: string) {
+
+export async function revokeShare(user_id: string, share_id: string) {
+  return await prisma.share.updateMany({
+    where: {
+      id: share_id,
+      user_id,
+    },
+    data: { isActive: false },
+  });
+}
+
+export async function getShareForView(share_id: string) {
   return await prisma.share.findUnique({
-    where: {
-      id: share_id,
+    where: { id: share_id },
+    include: {
+      file: true,
     },
   });
 }

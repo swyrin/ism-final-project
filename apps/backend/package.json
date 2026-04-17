@@ -4,9 +4,7 @@
   "private": true,
   "scripts": {
     "start": "tsx ./app.ts",
-    "dev": "tsx watch ./app.ts",
-    "build": "tsc",
-    "start:prod": "node ./dist/app"
+    "dev": "tsx watch ./app.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1024.0",

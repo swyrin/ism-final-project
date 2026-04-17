@@ -2,7 +2,7 @@ import type { FileRecord } from "@www/api";
 import type { Dispatch, SetStateAction, MouseEvent } from "react";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, queryKeys } from "@www/api";
+import { api, mutations, queryKeys } from "@www/api";
 import FileMenu from "@www/components/userPanel/knowledgeBase/FileMenu";
 import ModalCategory from "@www/components/userPanel/knowledgeBase/modalCategory";
 import PageViewer from "@www/components/userPanel/knowledgeBase/PageViewer";
@@ -60,7 +60,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
   });
 
   const updateFileMutation = useMutation({
-    mutationFn: (params: URLSearchParams) => api.file.update(params),
+    ...mutations.file.update,
     onSuccess: () => {
       window.location.reload();
     },
@@ -137,16 +137,16 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
   const handleEditName = async (id: string) => {
     const newName = prompt("Enter new name:");
     if (newName) {
-      const params = new URLSearchParams({ id, title: newName });
-      updateFileMutation.mutate(params);
+      const params = new URLSearchParams({ title: newName });
+      updateFileMutation.mutate({ id, params });
     }
   };
 
   const handleEditDescription = async (id: string) => {
     const newDescription = prompt("Enter new description:");
     if (newDescription) {
-      const params = new URLSearchParams({ id, description: newDescription });
-      updateFileMutation.mutate(params);
+      const params = new URLSearchParams({ description: newDescription });
+      updateFileMutation.mutate({ id, params });
     }
   };
 
@@ -163,8 +163,8 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
     if (!categoryEditDoc) {
       return;
     }
-    const params = new URLSearchParams({ id: categoryEditDoc.id, category_id: categoryId });
-    updateFileMutation.mutate(params);
+    const params = new URLSearchParams({ category_id: categoryId });
+    updateFileMutation.mutate({ id: categoryEditDoc.id, params });
   };
 
   const handleDeleteFile = (id: string) => {

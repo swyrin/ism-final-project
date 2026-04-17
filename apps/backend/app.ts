@@ -6,6 +6,7 @@ import fileRouter from "@srv/routes/fileRoutes";
 import homeRouter from "@srv/routes/homeRoutes";
 import indexRouter from "@srv/routes/index";
 import searchRouter from "@srv/routes/searchRoutes";
+import shareRouter from "@srv/routes/shareRoutes";
 import { toNodeHandler } from "better-auth/node";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -36,6 +37,7 @@ app.use("/file", fileRouter);
 app.use("/home", homeRouter);
 app.use("/search", searchRouter);
 app.use("/category", categoryRouter);
+app.use("/share", shareRouter);
 
 const port = process.env.PORT || 5000;
 

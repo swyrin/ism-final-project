@@ -3,8 +3,10 @@ import { api, queryKeys } from "@www/api";
 import { API_URL } from "@www/constant";
 import * as pdfjsLib from "pdfjs-dist";
 import { useState, useEffect } from "react";
-import { FaFilePdf, FaDownload, FaArrowLeft, FaExternalLinkAlt } from "react-icons/fa";
-import { useParams, useNavigate } from "react-router-dom";
+import { FaArrowLeft, FaDownload, FaExternalLinkAlt, FaFilePdf, FaShareAlt } from "react-icons/fa";
+import { useNavigate, useParams } from "react-router-dom";
+
+import ShareModal from "./ShareModal";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -16,6 +18,7 @@ function FileViewerPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [zoom, setZoom] = useState(1);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const { data: fileInfo, isLoading } = useQuery({
     queryKey: queryKeys.fileInfo(fileId!),
@@ -133,6 +136,13 @@ function FileViewerPage() {
                 <FaDownload className="h-4 w-4" />
                 <span className="hidden sm:inline">Download</span>
               </button>
+              <button
+                onClick={() => setShareOpen(true)}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-100 hover:text-blue-700 sm:flex-none sm:px-4"
+              >
+                <FaShareAlt className="h-4 w-4" />
+                <span className="hidden sm:inline">Share</span>
+              </button>
             </div>
           </div>
         </div>
@@ -197,6 +207,7 @@ function FileViewerPage() {
           </div>
         </div>
       </div>
+      {fileId && <ShareModal fileId={fileId} isOpen={shareOpen} onClose={() => setShareOpen(false)} />}
     </div>
   );
 }

@@ -1,8 +1,7 @@
-import type { SearchResult } from "@www/api";
 import type { KeyboardEvent, MouseEvent } from "react";
 
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { api, queryKeys } from "@www/api";
+import { api, mutations, queryKeys, type SearchResult } from "@www/api";
 import FileMenu from "@www/components/userPanel/knowledgeBase/FileMenu";
 import ModalCategory from "@www/components/userPanel/knowledgeBase/modalCategory";
 import { API_URL } from "@www/constant";
@@ -57,7 +56,7 @@ function SearchPage() {
   });
 
   const updateFileMutation = useMutation({
-    mutationFn: (params: URLSearchParams) => api.file.update(params),
+    ...mutations.file.update,
     onSuccess: () => {
       window.location.reload();
     },
@@ -144,14 +143,14 @@ function SearchPage() {
   const handleEditName = (id: string) => {
     const newName = prompt("Enter new name:");
     if (newName) {
-      updateFileMutation.mutate(new URLSearchParams({ id, title: newName }));
+      updateFileMutation.mutate({ id, params: new URLSearchParams({ title: newName }) });
     }
   };
 
   const handleEditDescription = (id: string) => {
     const newDescription = prompt("Enter new description:");
     if (newDescription) {
-      updateFileMutation.mutate(new URLSearchParams({ id, description: newDescription }));
+      updateFileMutation.mutate({ id, params: new URLSearchParams({ description: newDescription }) });
     }
   };
 
@@ -166,7 +165,10 @@ function SearchPage() {
     if (!editingDocId) {
       return;
     }
-    updateFileMutation.mutate(new URLSearchParams({ id: editingDocId, category_id: newCategory }));
+    updateFileMutation.mutate({
+      id: editingDocId,
+      params: new URLSearchParams({ category_id: newCategory }),
+    });
   };
 
   const handleDeleteFile = (id: string) => {

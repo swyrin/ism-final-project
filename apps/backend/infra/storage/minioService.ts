@@ -1,4 +1,12 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, CopyObjectCommand } from "@aws-sdk/client-s3";
+import type { Readable } from "stream";
+
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  CopyObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 
 const client = new S3Client({
   endpoint: process.env.S3_ENDPOINT!,
@@ -60,4 +68,27 @@ export async function copyFile(
   });
   await client.send(command);
   return true;
+}
+
+export interface ObjectStream {
+  body: Readable;
+  contentType?: string;
+  contentLength?: number;
+}
+
+export async function getObjectStream(key: string): Promise<ObjectStream> {
+  const result = await client.send(
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    }),
+  );
+  if (!result.Body) {
+    throw new Error(`MinIO returned empty body for key ${key}`);
+  }
+  return {
+    body: result.Body as Readable,
+    contentType: result.ContentType,
+    contentLength: result.ContentLength,
+  };
 }

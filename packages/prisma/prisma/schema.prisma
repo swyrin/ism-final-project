@@ -42,18 +42,18 @@ model File {
   category    Category      @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   document    Document      @relation(fields: [document_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   history     FileHistory[]
+  shares      Share[]
   user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Share {
-  id      String @id
-  user_id String
-
-  title       String
-  author      String
-  description String
-  storagePath String @default("")
-  user        User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id        String   @id
+  file_id   String   @map("fid")
+  user_id   String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  file      File     @relation(fields: [file_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model FileHistory {

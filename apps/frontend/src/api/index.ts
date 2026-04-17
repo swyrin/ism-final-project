@@ -2,7 +2,10 @@ import { queryOptions } from "@tanstack/react-query";
 import { API_URL } from "@www/constant";
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, init);
+  const res = await fetch(`${API_URL}${path}`, {
+    credentials: "include",
+    ...init,
+  });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
     throw new Error(text || `HTTP ${res.status}`);
@@ -56,6 +59,12 @@ export interface HomeData {
   total_files: number;
 }
 
+export interface Share {
+  id: string;
+  shareUrl: string;
+  createdAt: string;
+}
+
 export const api = {
   home: {
     get: () => apiFetch<HomeData>("/home"),
@@ -94,6 +103,21 @@ export const api = {
       }),
     delete: (id: string) => apiFetch<{ message: string }>(`/file/${id}`, { method: "DELETE" }),
     addView: (id: string) => apiFetch<FileRecord>(`/file/${id}`, { method: "PATCH" }),
+    listShares: (id: string) => apiFetch<Share[]>(`/file/${id}/shares`),
+    createShare: (id: string) => apiFetch<Share>(`/file/${id}/share`, { method: "POST" }),
+  },
+
+  share: {
+    revoke: async (id: string): Promise<void> => {
+      const res = await fetch(`${API_URL}/share/${id}/revoke`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => res.statusText);
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+    },
   },
 
   category: {
@@ -126,6 +150,7 @@ export const queryKeys = {
   categories: ["categories"] as const,
   search: (q: string) => ["search", q] as const,
   fileInfo: (id: string) => ["file", id, "info"] as const,
+  shares: (fileId: string) => ["shares", fileId] as const,
 };
 
 export const queries = {
@@ -156,6 +181,12 @@ export const queries = {
       queryFn: () => api.file.getInfo(id),
       enabled: Boolean(id),
     }),
+  shares: (fileId: string) =>
+    queryOptions({
+      queryKey: queryKeys.shares(fileId),
+      queryFn: () => api.file.listShares(fileId),
+      enabled: Boolean(fileId),
+    }),
 };
 
 export const mutations = {
@@ -182,6 +213,14 @@ export const mutations = {
     },
     addView: {
       mutationFn: (id: string) => api.file.addView(id),
+    },
+    createShare: {
+      mutationFn: (id: string) => api.file.createShare(id),
+    },
+  },
+  share: {
+    revoke: {
+      mutationFn: (id: string) => api.share.revoke(id),
     },
   },
   category: {
