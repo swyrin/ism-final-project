@@ -54,7 +54,7 @@ function FileView({ selectedFile, fileContent, onClose }: FileViewProps) {
     }
     const a = document.createElement("a");
     a.style.display = "none";
-    a.href = `${API_URL}/file?id=${selectedFile.id}&download=1`;
+    a.href = `${API_URL}/file/${selectedFile.id}/raw?download=1`;
     a.download = "";
     document.body.appendChild(a);
     a.click();

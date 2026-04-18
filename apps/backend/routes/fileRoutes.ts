@@ -1,3 +1,4 @@
+import * as minioService from "@srv/infra/storage/minioService";
 import { requireAuth } from "@srv/middleware/middleware.auth";
 import * as fileService from "@srv/services/fileService";
 import * as shareService from "@srv/services/shareService";
@@ -25,6 +26,28 @@ router.get("/:id", requireAuth, async (req: express.Request<{ id: string }>, res
     handleError(error, res);
   }
 });
+
+router.get(
+  "/:id/raw",
+  requireAuth,
+  async (
+    req: express.Request<{ id: string }, unknown, unknown, { download?: string }>,
+    res: express.Response,
+  ) => {
+    try {
+      const file = await fileService.getFileForStream(req.user!.user_id, req.params.id);
+      const stream = await minioService.getObjectStream(file.storagePath);
+      res.setHeader("Content-Type", stream.contentType ?? "application/pdf");
+      if (stream.contentLength) res.setHeader("Content-Length", String(stream.contentLength));
+      const disposition = req.query.download === "1" ? "attachment" : "inline";
+      const safeName = encodeURIComponent(`${file.title}.pdf`);
+      res.setHeader("Content-Disposition", `${disposition}; filename*=UTF-8''${safeName}`);
+      stream.body.pipe(res);
+    } catch (error) {
+      handleError(error, res);
+    }
+  },
+);
 
 router.post(
   "/",

@@ -34,7 +34,7 @@ function FileViewerPage() {
     const loadPdf = async () => {
       try {
         setIsLoadingPdf(true);
-        const response = await fetch(`${API_URL}/file?id=${fileId}`);
+        const response = await fetch(`${API_URL}/file/${fileId}/raw`, { credentials: "include" });
         if (!response.ok) {
           throw new Error("Failed to fetch file content");
         }
@@ -77,7 +77,7 @@ function FileViewerPage() {
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/file?id=${fileId}&download=1`);
+      const response = await fetch(`${API_URL}/file/${fileId}/raw?download=1`, { credentials: "include" });
       if (!response.ok) {
         throw new Error("Failed to download file");
       }
@@ -102,7 +102,7 @@ function FileViewerPage() {
     if (!fileId) {
       return;
     }
-    window.open(`${API_URL}/file?id=${fileId}`, "_blank");
+    window.open(`${API_URL}/file/${fileId}/raw`, "_blank");
   };
 
   return (

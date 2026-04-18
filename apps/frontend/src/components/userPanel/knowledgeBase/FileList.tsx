@@ -108,7 +108,7 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
         if (!thumbnails[doc.id]) {
           try {
             setLoadingThumbnails((prev) => ({ ...prev, [doc.id]: true }));
-            const response = await fetch(`${API_URL}/file?id=${doc.id}`);
+            const response = await fetch(`${API_URL}/file/${doc.id}/raw`, { credentials: "include" });
             if (!response.ok) {
               throw new Error(`Failed to fetch file ${doc.id}`);
             }
@@ -175,7 +175,7 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
   const handleDownloadFile = (id: string) => {
     const a = document.createElement("a");
     a.style.display = "none";
-    a.href = `${API_URL}/file?id=${id}&download=1`;
+    a.href = `${API_URL}/file/${id}/raw?download=1`;
     a.download = "";
     document.body.appendChild(a);
     a.click();

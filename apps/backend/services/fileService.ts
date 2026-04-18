@@ -148,6 +148,17 @@ export const getFileInformation = async (
   };
 };
 
+export const getFileForStream = async (
+  user_id: string,
+  id: string,
+): Promise<{ storagePath: string; title: string }> => {
+  const file = await fileRepository.getFileInformation(user_id, id);
+  if (!file) {
+    throw new NotFoundError("file not found.");
+  }
+  return { storagePath: file.storagePath, title: file.title };
+};
+
 export const deleteFile = async (user_id: string, id: string): Promise<{ message: string }> => {
   const file = await fileRepository.getFileInformation(user_id, id);
 
