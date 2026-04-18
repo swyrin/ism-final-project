@@ -58,7 +58,7 @@ function Body({ filteredDocuments, setFilteredDocuments, documentId, document }:
               <FaFilter className="mr-2" />
               Filters
             </button>
-            <AddFileButton setFilteredDocuments={setFilteredDocuments} documentId={documentId} />
+            <AddFileButton documentId={documentId} />
           </div>
         </div>
 

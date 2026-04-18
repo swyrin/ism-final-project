@@ -41,7 +41,7 @@ function PageViewer({ selectedFile, onClose }: PageViewerProps) {
 
       try {
         setIsLoading(true);
-        const response = await fetch(`${API_URL}/file?id=${selectedFile.id}&detail=1`);
+        const response = await fetch(`${API_URL}/file/${selectedFile.id}`, { credentials: "include" });
         if (!response.ok) {
           throw new Error("Failed to fetch file info");
         }
@@ -64,7 +64,7 @@ function PageViewer({ selectedFile, onClose }: PageViewerProps) {
 
     try {
       setIsLoadingPdf(true);
-      const response = await fetch(`${API_URL}/file?id=${selectedFile.id}`);
+      const response = await fetch(`${API_URL}/file/${selectedFile.id}/raw`, { credentials: "include" });
       if (!response.ok) {
         throw new Error("Failed to fetch file content");
       }
@@ -104,7 +104,9 @@ function PageViewer({ selectedFile, onClose }: PageViewerProps) {
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/file?id=${selectedFile.id}&download=1`);
+      const response = await fetch(`${API_URL}/file/${selectedFile.id}/raw?download=1`, {
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error("Failed to download file");
       }

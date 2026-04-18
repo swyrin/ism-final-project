@@ -26,7 +26,7 @@ interface FileListProps {
   documentId: string;
 }
 
-function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
+function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileListProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
@@ -62,14 +62,15 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
   const updateFileMutation = useMutation({
     ...mutations.file.update,
     onSuccess: () => {
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: queryKeys.document(documentId) });
     },
   });
 
   const deleteFileMutation = useMutation({
     mutationFn: (id: string) => api.file.delete(id),
-    onSuccess: (_data, id) => {
-      setFilteredDocuments((prev) => prev.filter((doc) => doc.id !== id));
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.document(documentId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
     },
     onError: (err) => {
       alert("Error deleting file: " + (err as Error).message);
@@ -107,10 +108,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
         if (!thumbnails[doc.id]) {
           try {
             setLoadingThumbnails((prev) => ({ ...prev, [doc.id]: true }));
-            if (!doc.fileUrl) {
-              continue;
-            }
-            const response = await fetch(doc.fileUrl);
+            const response = await fetch(`${API_URL}/file/${doc.id}/raw`, { credentials: "include" });
             if (!response.ok) {
               throw new Error(`Failed to fetch file ${doc.id}`);
             }
@@ -180,7 +178,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
     }
     const a = document.createElement("a");
     a.style.display = "none";
-    a.href = `${fileUrl}`; //Get the file URL from the document data
+    a.href = `${API_URL}/file?id=${id}&download=1`;
     a.download = "";
     document.body.appendChild(a);
     a.click();

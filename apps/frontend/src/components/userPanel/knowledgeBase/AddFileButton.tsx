@@ -1,5 +1,4 @@
-import type { FileRecord } from "@www/api";
-import type { Dispatch, SetStateAction, ChangeEvent, FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, queryKeys } from "@www/api";
@@ -7,7 +6,6 @@ import { useState } from "react";
 import { FaPlus, FaTimes } from "react-icons/fa";
 
 interface AddFileButtonProps {
-  setFilteredDocuments: Dispatch<SetStateAction<FileRecord[]>>;
   documentId: string;
 }
 
@@ -19,7 +17,7 @@ interface FormData {
   file: File | null;
 }
 
-function AddFileButton({ setFilteredDocuments, documentId }: AddFileButtonProps) {
+function AddFileButton({ documentId }: AddFileButtonProps) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -55,8 +53,9 @@ function AddFileButton({ setFilteredDocuments, documentId }: AddFileButtonProps)
 
   const uploadFileMutation = useMutation({
     mutationFn: (fd: FormData_) => api.file.upload(fd as unknown as globalThis.FormData),
-    onSuccess: (newFile) => {
-      setFilteredDocuments((prev) => [...prev, newFile]);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.document(documentId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
       setShowForm(false);
       setFormData({ title: "", content: "", category: "", author: "", file: null });
       setError("");
