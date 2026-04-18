@@ -6,9 +6,9 @@ import express from "express";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
-    res.json(await documentService.getDocument(req.query as Record<string, unknown>));
+    res.json(await documentService.getDocument(req.user!.user_id, req.query as Record<string, unknown>));
   } catch (error) {
     handleError(error, res);
   }

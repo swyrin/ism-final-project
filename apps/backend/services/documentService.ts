@@ -1,4 +1,5 @@
 import prisma from "@ism/prisma";
+import { buildFileUrl } from "@srv/infra/storage/minioService";
 import { HttpError } from "@srv/utils/HttpError";
 import { v4 as uuidv4 } from "uuid";
 
@@ -53,6 +54,7 @@ export const createDocument = async (
 };
 
 export const getDocument = async (
+  user_id: string,
   query: Record<string, unknown>,
 ): Promise<ReturnType<typeof formatDocument>> => {
   const { id } = query as { id?: string };
@@ -61,7 +63,7 @@ export const getDocument = async (
   }
 
   const doc = await prisma.document.findUnique({
-    where: { id },
+    where: { id, files: { some: { document_id: id, user_id } } },
     include: {
       history: true,
       files: {
@@ -92,6 +94,7 @@ export const getDocument = async (
       category_name: file.category.name,
       modified_at: sortedHistory[0]?.modified_at.toISOString(),
       history: sortedHistory.map((h) => h.modified_at.toISOString()),
+      fileUrl: buildFileUrl(file.storagePath),
     };
   });
 

@@ -42,7 +42,7 @@ function fileSummary(file: {
     id: file.id,
     title: file.title,
     modified_at: sortedHistory[0]?.modified_at.toISOString(),
-    storagePath: minioService.buildFileUrl(file.storagePath),
+    fileUrl: minioService.buildFileUrl(file.storagePath),
   };
 }
 

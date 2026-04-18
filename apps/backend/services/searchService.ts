@@ -1,4 +1,5 @@
 import prisma from "@ism/prisma";
+import { buildFileUrl } from "@srv/infra/storage/minioService";
 import { HttpError } from "@srv/utils/HttpError";
 
 export const search = async (query: Record<string, unknown>) => {
@@ -32,5 +33,6 @@ export const search = async (query: Record<string, unknown>) => {
     author: file.author,
     document_id: file.document_id,
     modified_at: file.history[0]?.modified_at.toISOString() ?? null,
+    fileUrl: buildFileUrl(file.storagePath),
   }));
 };
