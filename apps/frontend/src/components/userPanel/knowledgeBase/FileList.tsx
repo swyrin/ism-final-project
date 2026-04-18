@@ -26,7 +26,7 @@ interface FileListProps {
   documentId: string;
 }
 
-function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
+function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileListProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
@@ -62,14 +62,15 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
   const updateFileMutation = useMutation({
     ...mutations.file.update,
     onSuccess: () => {
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: queryKeys.document(documentId) });
     },
   });
 
   const deleteFileMutation = useMutation({
     mutationFn: (id: string) => api.file.delete(id),
-    onSuccess: (_data, id) => {
-      setFilteredDocuments((prev) => prev.filter((doc) => doc.id !== id));
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.document(documentId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
     },
     onError: (err) => {
       alert("Error deleting file: " + (err as Error).message);

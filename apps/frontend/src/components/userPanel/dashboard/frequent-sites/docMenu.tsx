@@ -1,7 +1,7 @@
 import type { CSSProperties, RefObject } from "react";
 
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { api, queries } from "@www/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api, queries, queryKeys } from "@www/api";
 import useClickOutside from "@www/hooks/useClickOutside";
 import { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaInfoCircle } from "react-icons/fa";
@@ -30,6 +30,7 @@ function DocMenu({
 }: DocMenuProps) {
   const [showInfo, setShowInfo] = useState(false);
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
+  const queryClient = useQueryClient();
   const menuRef = useClickOutside(() => {
     setShowInfo(false);
   });
@@ -60,13 +61,19 @@ function DocMenu({
 
   const renameMutation = useMutation({
     mutationFn: ({ id, title }: { id: string; title: string }) => api.document.rename(id, title),
-    onSuccess: (doc) => onEditSuccess(doc.id, doc.title),
+    onSuccess: (doc) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
+      onEditSuccess(doc.id, doc.title);
+    },
     onError: () => alert("Failed to update document name"),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.document.delete(id),
-    onSuccess: onDeleteSuccess,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
+      onDeleteSuccess();
+    },
     onError: () => alert("Failed to delete document"),
   });
 

@@ -1,6 +1,6 @@
 import type { KeyboardEvent, MouseEvent } from "react";
 
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, mutations, queryKeys, type SearchResult } from "@www/api";
 import FileMenu from "@www/components/userPanel/knowledgeBase/FileMenu";
 import ModalCategory from "@www/components/userPanel/knowledgeBase/modalCategory";
@@ -39,6 +39,8 @@ function SearchPage() {
   const [initialCategory, setInitialCategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const { data: categories = [] } = useQuery({
     queryKey: queryKeys.categories,
     queryFn: api.category.list,
@@ -58,15 +60,16 @@ function SearchPage() {
   const updateFileMutation = useMutation({
     ...mutations.file.update,
     onSuccess: () => {
-      window.location.reload();
+      queryClient.invalidateQueries({ queryKey: queryKeys.search(submittedQuery) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
     },
   });
 
   const deleteFileMutation = useMutation({
     mutationFn: (id: string) => api.file.delete(id),
-    onSuccess: (_data, id) => {
-      // Remove from results (filtered client-side since we can't invalidate easily)
-      window.location.reload();
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.search(submittedQuery) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home });
     },
     onError: (err) => {
       alert("Error deleting file: " + (err as Error).message);
