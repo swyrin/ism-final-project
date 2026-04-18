@@ -55,7 +55,17 @@ model Share {
   file      File     @relation(fields: [file_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
+// Share internal to user, not related to file, for sharing file with other users without creating a new file entry
+model UserShare {
+  id      String @id
+  user_id String
 
+  title       String
+  author      String
+  description String
+  storagePath String @default("")
+  user        User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
 model FileHistory {
   file_id     String   @map("fid")
   modified_at DateTime
@@ -77,6 +87,8 @@ model User {
   accounts      Account[]
   files         File[]
   shares        Share[]
+  userShares  UserShare[] 
+
 }
 
 model Session {
