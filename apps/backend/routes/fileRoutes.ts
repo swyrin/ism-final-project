@@ -1,7 +1,8 @@
 import { requireAuth } from "@srv/middleware/middleware.auth";
 import * as fileService from "@srv/services/fileService";
 import * as shareService from "@srv/services/shareService";
-import { handleError } from "@srv/utils/HttpError";
+import * as userShareService from "@srv/services/userShareService";
+import { BadRequestError, handleError } from "@srv/utils/HttpError";
 import express from "express";
 import multer from "multer";
 const router = express.Router();
@@ -98,5 +99,46 @@ router.delete("/:id", requireAuth, async (req: express.Request<{ id: string }>, 
     handleError(error, res);
   }
 });
+// Create share file
+router.post(
+  "/:file_id/share/user",
+  requireAuth,
+  async (req: express.Request<{ file_id: string }>, res: express.Response) => {
+    const file_id = req.params.file_id;
 
+    try {
+      const data = await userShareService.createUserShareFile(req.user!.user_id, file_id);
+      const response = {
+        shareUrl: data,
+      };
+      res.status(200).json(response);
+    } catch (error) {
+      handleError(error, res);
+    }
+  },
+);
+// Add share file
+router.post("/import", requireAuth, async (req: express.Request, res: express.Response) => {
+  const { documentId, categoryId, shareUrl } = req.body || {};
+
+  if (!documentId || !categoryId || !shareUrl) {
+    throw new BadRequestError("missing parameter.");
+  }
+
+  const url = new URL(shareUrl);
+  const parts = url.pathname.split("/share/");
+  const share_id = parts.length > 1 ? parts[1] : null;
+
+  if (!share_id) {
+    throw new BadRequestError("invalid share_url");
+  }
+
+  try {
+    const data = await userShareService.importShareFile(req.user!.user_id, documentId, categoryId, share_id);
+    const response = { message: "file added to document successfully." };
+    res.status(200).json(response);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
 export default router;
