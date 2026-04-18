@@ -51,6 +51,7 @@ export interface SearchResult {
   author?: string;
   document_id?: string;
   modified_at?: string;
+  fileUrl?: string;
 }
 
 export interface HomeData {

@@ -104,7 +104,11 @@ function SearchPage() {
         if (!thumbnails[doc.id] && !loadingThumbnails[doc.id]) {
           try {
             setLoadingThumbnails((prev) => ({ ...prev, [doc.id]: true }));
-            const response = await fetch(`${API_URL}/file?id=${doc.id}`);
+
+            if (!doc.fileUrl) {
+              continue;
+            }
+            const response = await fetch(doc.fileUrl);
             if (!response.ok) {
               throw new Error("Failed to load thumbnail");
             }
@@ -178,9 +182,12 @@ function SearchPage() {
     deleteFileMutation.mutate(id);
   };
 
-  const handleDownloadFile = (id: string) => {
+  const handleDownloadFile = (fileUrl?: string) => {
+    if (!fileUrl) {
+      return;
+    }
     const a = document.createElement("a");
-    a.href = `${API_URL}/file?id=${id}&download=1`;
+    a.href = `${fileUrl}`;
     a.download = "";
     document.body.appendChild(a);
     a.click();
@@ -414,7 +421,7 @@ function SearchPage() {
                     onEditDescription={() => handleEditDescription(doc.id)}
                     onEditCategory={() => handleEditCategory(doc.id)}
                     onDelete={() => handleDeleteFile(doc.id)}
-                    onDownload={() => handleDownloadFile(doc.id)}
+                    onDownload={() => handleDownloadFile(doc.fileUrl)}
                     onInfo={() => {}}
                     onClose={() => setActiveMenu(null)}
                   />

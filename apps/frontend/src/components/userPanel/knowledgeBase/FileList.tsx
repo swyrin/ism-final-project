@@ -107,7 +107,10 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
         if (!thumbnails[doc.id]) {
           try {
             setLoadingThumbnails((prev) => ({ ...prev, [doc.id]: true }));
-            const response = await fetch(`${API_URL}/file?id=${doc.id}`);
+            if (!doc.fileUrl) {
+              continue;
+            }
+            const response = await fetch(doc.fileUrl);
             if (!response.ok) {
               throw new Error(`Failed to fetch file ${doc.id}`);
             }
@@ -171,10 +174,13 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
     deleteFileMutation.mutate(id);
   };
 
-  const handleDownloadFile = (id: string) => {
+  const handleDownloadFile = (fileUrl?: string) => {
+    if (!fileUrl) {
+      return;
+    }
     const a = document.createElement("a");
     a.style.display = "none";
-    a.href = `${API_URL}/file?id=${id}&download=1`;
+    a.href = `${fileUrl}`; //Get the file URL from the document data
     a.download = "";
     document.body.appendChild(a);
     a.click();
@@ -230,6 +236,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
                 >
                   <FaEllipsisV />
                 </button>
+
                 <FileMenu
                   docId={doc.id}
                   isMenuVisible={activeMenu === doc.id}
@@ -238,7 +245,7 @@ function FileList({ filteredDocuments, setFilteredDocuments }: FileListProps) {
                   onEditDescription={() => handleEditDescription(doc.id)}
                   onEditCategory={() => handleEditCategory(doc.id)}
                   onDelete={() => handleDeleteFile(doc.id)}
-                  onDownload={() => handleDownloadFile(doc.id)}
+                  onDownload={() => handleDownloadFile(doc.fileUrl)}
                   onInfo={() => handleShowInfo(doc.id)}
                   onClose={() => setActiveMenu(null)}
                 />
