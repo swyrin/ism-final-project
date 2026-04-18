@@ -1,3 +1,10 @@
 **/node_modules/**
 **/.env
 **/.claude
+.vscode/sftp.json
+apps/backend/Dockerfile
+apps/frontend/Dockerfile
+.dockerignore
+DEPLOYMENT.md
+docker-compose.yml
+nginx.conf
