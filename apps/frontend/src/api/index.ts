@@ -65,6 +65,28 @@ export interface Share {
   createdAt: string;
 }
 
+export interface ShareInfo {
+  id: string;
+  isActive: boolean;
+  owner: { id: string; name: string };
+  file: {
+    id: string;
+    title: string;
+    author: string;
+    description: string;
+    category_id: number;
+    category_name: string;
+  };
+}
+
+export interface ImportResponse {
+  file: FileRecord;
+}
+
+export type ImportBody =
+  | { document_id: string; new_document_title?: undefined }
+  | { document_id?: undefined; new_document_title: string };
+
 export const api = {
   home: {
     get: () => apiFetch<HomeData>("/home"),
@@ -118,6 +140,13 @@ export const api = {
         throw new Error(text || `HTTP ${res.status}`);
       }
     },
+    info: (id: string) => apiFetch<ShareInfo>(`/share/${id}/info`),
+    import: (id: string, body: ImportBody) =>
+      apiFetch<ImportResponse>(`/share/${id}/import`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
   },
 
   category: {
@@ -151,6 +180,7 @@ export const queryKeys = {
   search: (q: string) => ["search", q] as const,
   fileInfo: (id: string) => ["file", id, "info"] as const,
   shares: (fileId: string) => ["shares", fileId] as const,
+  shareInfo: (id: string) => ["shareInfo", id] as const,
 };
 
 export const queries = {
@@ -187,6 +217,13 @@ export const queries = {
       queryFn: () => api.file.listShares(fileId),
       enabled: Boolean(fileId),
     }),
+  shareInfo: (id: string) =>
+    queryOptions({
+      queryKey: queryKeys.shareInfo(id),
+      queryFn: () => api.share.info(id),
+      enabled: Boolean(id),
+      retry: false,
+    }),
 };
 
 export const mutations = {
@@ -221,6 +258,9 @@ export const mutations = {
   share: {
     revoke: {
       mutationFn: (id: string) => api.share.revoke(id),
+    },
+    import: {
+      mutationFn: ({ id, body }: { id: string; body: ImportBody }) => api.share.import(id, body),
     },
   },
   category: {
