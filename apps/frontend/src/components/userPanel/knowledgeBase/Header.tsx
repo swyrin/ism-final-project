@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { queries } from "@www/api";
 import { useState, useRef, useEffect } from "react";
-import { FaBell, FaCog, FaSearch, FaUserCircle, FaArrowLeft, FaFileAlt } from "react-icons/fa";
+import { FaSearch, FaUserCircle, FaArrowLeft, FaFileAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 import DropdownMenu from "../dashboard/header/DropdownMenu";
@@ -56,7 +56,7 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
   };
 
   return (
-    <header className="bg-opacity-90 sticky top-0 z-50 border-b border-gray-200 bg-custom-blue bg-white shadow-sm backdrop-blur-md transition-all duration-300">
+    <header className="bg-opacity-90 sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm backdrop-blur-md transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex h-auto flex-col items-start justify-between py-4 sm:h-16 sm:flex-row sm:items-center sm:py-0">
           <div className="mb-4 flex w-full items-center justify-between sm:hidden">
@@ -68,16 +68,6 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
               Back to Dashboard
             </button>
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate("/notifications")}
-                className="relative p-2 text-gray-600 hover:text-blue-600"
-              >
-                <FaBell className="text-xl" />
-                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />
-              </button>
-              <button onClick={() => navigate("/settings")} className="p-2 text-gray-600 hover:text-blue-600">
-                <FaCog className="text-xl" />
-              </button>
               <div className="relative">
                 <button onClick={toggleDropdown} className="flex items-center space-x-2 focus:outline-none">
                   <FaUserCircle className="text-2xl text-gray-600 hover:text-blue-600" />
@@ -145,16 +135,6 @@ function Header({ toggleDropdown, dropdownOpen }: HeaderProps) {
             </div>
 
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate("/notifications")}
-                className="relative p-2 text-gray-600 hover:text-blue-600"
-              >
-                <FaBell className="text-xl" />
-                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500" />
-              </button>
-              <button onClick={() => navigate("/settings")} className="p-2 text-gray-600 hover:text-blue-600">
-                <FaCog className="text-xl" />
-              </button>
               <div className="relative">
                 <button onClick={toggleDropdown} className="flex items-center space-x-2 focus:outline-none">
                   <FaUserCircle className="text-2xl text-gray-600 hover:text-blue-600" />

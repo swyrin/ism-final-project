@@ -47,6 +47,7 @@ function Dashboard() {
   const [starredOverrides, setStarredOverrides] = useState<Record<string, boolean>>(getStarredFromStorage);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [showBookmarked, setShowBookmarked] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -80,6 +81,8 @@ function Dashboard() {
       queryClient.invalidateQueries({ queryKey: queryKeys.home });
     },
   });
+
+  const visibleDocuments = showBookmarked ? recentDocuments.filter((d) => d.starred) : recentDocuments;
 
   const handleStar = (docId: string) => {
     setStarredOverrides((prev) => {
@@ -176,23 +179,23 @@ function Dashboard() {
               <span>Create New Site</span>
             </button>
             <button
-              onClick={() => navigate("/bookmarks")}
-              className="flex items-center justify-center rounded-xl bg-white p-3 shadow-sm transition-shadow hover:shadow-md md:p-4"
+              onClick={() => setShowBookmarked((v) => !v)}
+              className={`flex items-center justify-center rounded-xl p-3 shadow-sm transition-shadow hover:shadow-md md:p-4 ${showBookmarked ? "bg-yellow-50 ring-2 ring-yellow-400" : "bg-white"}`}
             >
               <FaBookmark className="mr-2 text-yellow-600" />
-              <span>View Bookmarks</span>
+              <span>{showBookmarked ? "Show All" : "Show Bookmarked"}</span>
             </button>
           </div>
         </div>
 
         <div className="flex flex-col gap-4 md:gap-6 lg:flex-row">
           <Sidebar
-            recentDocuments={recentDocuments}
+            recentDocuments={visibleDocuments}
             handleStar={handleStar}
             addFrequentSite={(siteName) => addFrequentSiteMutation.mutate(siteName)}
           />
           <FrequentSites
-            documents={recentDocuments}
+            documents={visibleDocuments}
             setRecentDocuments={() => {}}
             handleStar={handleStar}
             onCardClick={handleCardClick}
