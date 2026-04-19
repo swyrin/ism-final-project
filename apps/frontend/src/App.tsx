@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AuthPage from "@www/components/auth/AuthPage";
 import RequireAuth from "@www/components/auth/RequireAuth";
 import ProfilePage from "@www/components/profile/ProfilePage";
+import SharedFilePage from "@www/components/share/SharedFilePage";
 import Dashboard from "@www/components/userPanel/dashboard/Dashboard";
 import FileViewerPage from "@www/components/userPanel/knowledgeBase/FileViewerPage";
 import PageLayout from "@www/components/userPanel/knowledgeBase/PageLayout";
@@ -24,6 +25,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/share/:id" element={<SharedFilePage />} />
           <Route
             path="/profile"
             element={
