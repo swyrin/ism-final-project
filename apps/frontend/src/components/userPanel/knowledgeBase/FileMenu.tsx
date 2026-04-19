@@ -47,7 +47,7 @@ function FileMenu({
       setMenuStyle({
         position: "absolute",
         top: `${menuPosition.top + 24}px`,
-        left: `${menuPosition.left}px`,
+        right: "0px",
         zIndex: 50,
       });
     }
