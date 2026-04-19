@@ -1,14 +1,13 @@
 import prisma from "@ism/prisma";
-import { HttpError } from "@srv/utils/HttpError";
+import * as documentRepository from "@srv/repository/documentRepository";
+import { BadRequestError, HttpError } from "@srv/utils/HttpError";
 import { v4 as uuidv4 } from "uuid";
 
 async function generateId(): Promise<string> {
   while (true) {
     const id = uuidv4();
     const existing = await prisma.document.findUnique({ where: { id } });
-    if (!existing) {
-      return id;
-    }
+    if (!existing) return id;
   }
 }
 
@@ -31,48 +30,37 @@ function formatDocument(doc: {
 }
 
 export const createDocument = async (
+  user_id: string,
   body: Record<string, unknown>,
 ): Promise<ReturnType<typeof formatDocument>> => {
   const { title } = body as { title?: string };
   if (!title) {
-    throw new HttpError(400, "missing parameter.");
+    throw new BadRequestError("missing parameter.");
   }
 
   const document_id = await generateId();
 
-  const doc = await prisma.document.create({
-    data: {
-      id: document_id,
-      title,
-      history: { create: { modified_at: new Date() } },
-    },
-    include: { history: true },
-  });
-
-  return formatDocument(doc);
+  try {
+    const doc = await documentRepository.createDocument(user_id, document_id, title);
+    return formatDocument(doc);
+  } catch (err: unknown) {
+    if (err && typeof err === "object" && "code" in err && (err as { code: string }).code === "P2002") {
+      throw new HttpError(409, "you already have a document with this title.");
+    }
+    throw err;
+  }
 };
 
 export const getDocument = async (
+  user_id: string,
   query: Record<string, unknown>,
 ): Promise<ReturnType<typeof formatDocument>> => {
   const { id } = query as { id?: string };
   if (!id) {
-    throw new HttpError(400, "missing parameter.");
+    throw new BadRequestError("missing parameter.");
   }
 
-  const doc = await prisma.document.findUnique({
-    where: { id },
-    include: {
-      history: true,
-      files: {
-        include: {
-          category: true,
-          history: { orderBy: { modified_at: "desc" } },
-        },
-      },
-    },
-  });
-
+  const doc = await documentRepository.getOwnedDocumentWithFiles(user_id, id);
   if (!doc) {
     throw new HttpError(404, "document not found.");
   }
@@ -99,42 +87,33 @@ export const getDocument = async (
 };
 
 export const changeDocumentName = async (
+  user_id: string,
   body: Record<string, unknown>,
 ): Promise<ReturnType<typeof formatDocument>> => {
   const { id, title } = body as { id?: string; title?: string };
   if (!id || !title) {
-    throw new HttpError(400, "missing parameter.");
+    throw new BadRequestError("missing parameter.");
   }
 
-  const existing = await prisma.document.findUnique({ where: { id } });
-  if (!existing) {
-    throw new HttpError(404, "document not found.");
+  try {
+    const doc = await documentRepository.renameDocument(user_id, id, title);
+    return formatDocument(doc);
+  } catch (err: unknown) {
+    if (err && typeof err === "object" && "code" in err && (err as { code: string }).code === "P2002") {
+      throw new HttpError(409, "you already have a document with this title.");
+    }
+    throw err;
   }
-
-  const doc = await prisma.document.update({
-    where: { id },
-    data: {
-      title,
-      history: { create: { modified_at: new Date() } },
-    },
-    include: { history: true },
-  });
-
-  return formatDocument(doc);
 };
 
-export const deleteDocument = async (body: Record<string, unknown>): Promise<{ message: string }> => {
+export const deleteDocument = async (
+  user_id: string,
+  body: Record<string, unknown>,
+): Promise<{ message: string }> => {
   const { id } = body as { id?: string };
   if (!id) {
-    throw new HttpError(400, "missing parameter.");
+    throw new BadRequestError("missing parameter.");
   }
-
-  const existing = await prisma.document.findUnique({ where: { id } });
-  if (!existing) {
-    throw new HttpError(404, "document not found.");
-  }
-
-  await prisma.document.delete({ where: { id } });
-
+  await documentRepository.deleteDocument(user_id, id);
   return { message: "delete successfully." };
 };
