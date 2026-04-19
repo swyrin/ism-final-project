@@ -6,9 +6,9 @@ import express from "express";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
-    res.json(await documentService.getDocument(req.query as Record<string, unknown>));
+    res.json(await documentService.getDocument(req.user!.user_id, req.query as Record<string, unknown>));
   } catch (error) {
     handleError(error, res);
   }
@@ -34,25 +34,25 @@ router.get(
   },
 );
 
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
-    res.status(201).json(await documentService.createDocument(req.body));
+    res.status(201).json(await documentService.createDocument(req.user!.user_id, req.body));
   } catch (error) {
     handleError(error, res);
   }
 });
 
-router.put("/", async (req, res) => {
+router.put("/", requireAuth, async (req, res) => {
   try {
-    res.status(201).json(await documentService.changeDocumentName(req.body));
+    res.status(201).json(await documentService.changeDocumentName(req.user!.user_id, req.body));
   } catch (error) {
     handleError(error, res);
   }
 });
 
-router.delete("/", async (req, res) => {
+router.delete("/", requireAuth, async (req, res) => {
   try {
-    res.json(await documentService.deleteDocument(req.body));
+    res.json(await documentService.deleteDocument(req.user!.user_id, req.body));
   } catch (error) {
     handleError(error, res);
   }
