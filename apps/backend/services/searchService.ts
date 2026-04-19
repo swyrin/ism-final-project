@@ -1,16 +1,16 @@
 import prisma from "@ism/prisma";
-import { HttpError } from "@srv/utils/HttpError";
+import { BadRequestError } from "@srv/utils/HttpError";
 
-export const search = async (query: Record<string, unknown>) => {
+export const search = async (user_id: string, query: Record<string, unknown>) => {
   const { q } = query as { q?: string };
   if (!q) {
-    throw new HttpError(400, "missing parameter.");
+    throw new BadRequestError("missing parameter.");
   }
 
   const files = await prisma.file.findMany({
     where: {
+      user_id,
       OR: [
-        { id: { contains: q, mode: "insensitive" } },
         { title: { contains: q, mode: "insensitive" } },
         { description: { contains: q, mode: "insensitive" } },
         { author: { contains: q, mode: "insensitive" } },
