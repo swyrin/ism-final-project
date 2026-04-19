@@ -88,6 +88,39 @@ export async function getFileInformation(user_id: string, id: string) {
   });
 }
 
+export async function createImportedFile(params: {
+  user_id: string;
+  file_id: string;
+  source: {
+    title: string;
+    category_id: number;
+    author: string;
+    description: string;
+  };
+  document_id: string;
+  storageKey: string;
+  imported_from_share_id: string;
+  original_owner_id: string;
+}) {
+  return await prisma.file.create({
+    data: {
+      user_id: params.user_id,
+      id: params.file_id,
+      title: params.source.title,
+      category_id: params.source.category_id,
+      author: params.source.author,
+      description: params.source.description,
+      document_id: params.document_id,
+      storagePath: params.storageKey,
+      view: 0,
+      imported_from_share_id: params.imported_from_share_id,
+      original_owner_id: params.original_owner_id,
+      history: { create: { modified_at: new Date() } },
+    },
+    include: { category: true, history: true },
+  });
+}
+
 export async function getFilesByDocumentId(user_id: string, document_id: string, category_id?: string) {
   return await prisma.file.findMany({
     where: {

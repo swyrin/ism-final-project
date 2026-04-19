@@ -1,5 +1,6 @@
 import * as minioService from "@srv/infra/storage/minioService";
 import { requireAuth } from "@srv/middleware/middleware.auth";
+import * as importService from "@srv/services/importService";
 import * as shareService from "@srv/services/shareService";
 import { handleError } from "@srv/utils/HttpError";
 import express from "express";
@@ -29,6 +30,20 @@ router.get("/:id/info", async (req: express.Request<{ id: string }>, res: expres
     handleError(error, res);
   }
 });
+
+// POST /share/:id/import — AUTH REQUIRED. Deep-copies the shared file into the caller's account.
+router.post(
+  "/:id/import",
+  requireAuth,
+  async (req: express.Request<{ id: string }>, res: express.Response) => {
+    try {
+      const result = await importService.importFromShare(req.user!.user_id, req.params.id, req.body);
+      res.status(201).json({ file: result });
+    } catch (error) {
+      handleError(error, res);
+    }
+  },
+);
 
 // GET /share/:id — PUBLIC. Streams the file bytes if the share is active.
 router.get("/:id", async (req: express.Request<{ id: string }>, res: express.Response) => {
