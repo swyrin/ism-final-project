@@ -71,12 +71,9 @@ export const createFile = async (
     throw new NotFoundError("category not found.");
   }
 
-  const document = await documentRepository.getDocumentById(document_id);
-  if (!document) {
-    throw new NotFoundError("document not found.");
-  }
+  await documentRepository.getOwnedDocumentOrThrow(user_id, document_id);
 
-  const storageKey = `${fileId}.pdf`;
+  const storageKey = `${user_id}/${fileId}.pdf`;
   await minioService.uploadFile(storageKey, buffer, contentType);
 
   let file;
