@@ -20,6 +20,16 @@ router.patch(
   },
 );
 
+// GET /share/:id/info — PUBLIC. Returns metadata only (no bytes).
+router.get("/:id/info", async (req: express.Request<{ id: string }>, res: express.Response) => {
+  try {
+    const info = await shareService.getShareInfo(req.params.id);
+    res.json(info);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
 // GET /share/:id — PUBLIC. Streams the file bytes if the share is active.
 router.get("/:id", async (req: express.Request<{ id: string }>, res: express.Response) => {
   try {
