@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { queries } from "@www/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { mutations, queries, queryKeys } from "@www/api";
 import { API_URL } from "@www/constant";
 import { authClient } from "@www/lib/auth-client";
 import { useState } from "react";
@@ -9,9 +9,17 @@ import ImportDestinationPicker from "./ImportDestinationPicker";
 
 function SharedFilePage() {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
   const { data: info, isLoading, error } = useQuery(queries.shareInfo(id ?? ""));
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  const revokeMutation = useMutation({
+    ...mutations.share.revoke,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.shareInfo(id ?? "") });
+    },
+  });
 
   if (!id) return <div className="p-8">Invalid share link.</div>;
   if (isLoading) return <div className="p-8 text-gray-500">Loading…</div>;
@@ -45,7 +53,7 @@ function SharedFilePage() {
             Shared by {info.owner.name} · {info.file.category_name}
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
           {!loggedIn && (
             <Link
               to="/auth"
@@ -53,6 +61,22 @@ function SharedFilePage() {
             >
               Sign in to save a copy
             </Link>
+          )}
+          {loggedIn && isOwner && (
+            <>
+              <span className="text-sm text-gray-500">Your shared file</span>
+              <button
+                onClick={() => {
+                  if (window.confirm("Revoke this share link? Anyone with the link will lose access.")) {
+                    revokeMutation.mutate(id);
+                  }
+                }}
+                disabled={revokeMutation.isPending}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {revokeMutation.isPending ? "Revoking…" : "Revoke link"}
+              </button>
+            </>
           )}
           {loggedIn && !isOwner && (
             <button
