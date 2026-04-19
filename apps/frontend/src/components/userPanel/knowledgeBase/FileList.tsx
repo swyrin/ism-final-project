@@ -178,7 +178,7 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
     }
     const a = document.createElement("a");
     a.style.display = "none";
-    a.href = `${API_URL}/file?id=${id}&download=1`;
+    a.href = fileUrl;
     a.download = "";
     document.body.appendChild(a);
     a.click();
