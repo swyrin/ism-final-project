@@ -38,6 +38,29 @@ export async function getShareForView(share_id: string) {
     where: { id: share_id },
     include: {
       file: true,
+      user: { select: { id: true, name: true } },
+    },
+  });
+}
+
+export async function getShareInfo(share_id: string) {
+  return await prisma.share.findUnique({
+    where: { id: share_id },
+    select: {
+      id: true,
+      isActive: true,
+      user_id: true,
+      file: {
+        select: {
+          id: true,
+          title: true,
+          author: true,
+          description: true,
+          category_id: true,
+          category: { select: { name: true } },
+        },
+      },
+      user: { select: { id: true, name: true } },
     },
   });
 }
