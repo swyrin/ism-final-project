@@ -69,7 +69,7 @@ function FileMenu({
   return (
     <div
       ref={menuRef as RefObject<HTMLDivElement>}
-      className="w-12 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+      className="w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
       style={menuStyle}
     >
       {menuItems.map((item, index) => (
@@ -77,11 +77,12 @@ function FileMenu({
           key={index}
           onClick={item.onClick}
           title={item.text}
-          className={`flex w-full items-center justify-center px-3 py-2 text-left text-sm ${
+          className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${
             item.isDanger ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-gray-100"
           }`}
         >
           {item.icon}
+          {item.text}
         </button>
       ))}
     </div>
