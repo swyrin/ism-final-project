@@ -10,8 +10,12 @@ datasource db {
 model Document {
   id      String            @id
   title   String
+  user_id String
+  user    User              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   history DocumentHistory[]
   files   File[]
+
+  @@unique([user_id, title])
 }
 
 model DocumentHistory {
@@ -30,20 +34,24 @@ model Category {
 }
 
 model File {
-  user_id     String
-  id          String        @id
-  title       String
-  category_id Int           @map("cid")
-  author      String
-  description String
-  document_id String        @map("did")
-  view        Int           @default(0)
-  storagePath String        @default("")
-  category    Category      @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  document    Document      @relation(fields: [document_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  history     FileHistory[]
-  shares      Share[]
-  user        User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id                String
+  id                     String        @id
+  title                  String
+  category_id            Int           @map("cid")
+  author                 String
+  description            String
+  document_id            String        @map("did")
+  view                   Int           @default(0)
+  storagePath            String        @default("")
+  imported_from_share_id String?
+  original_owner_id      String?
+  category               Category      @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  document               Document      @relation(fields: [document_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  history                FileHistory[]
+  shares                 Share[]
+  user                   User          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  imported_from_share    Share?        @relation("SharedImports", fields: [imported_from_share_id], references: [id], onDelete: SetNull)
+  original_owner         User?         @relation("ImportSource", fields: [original_owner_id], references: [id], onDelete: SetNull)
 }
 
 model Share {
@@ -54,6 +62,7 @@ model Share {
   createdAt DateTime @default(now())
   file      File     @relation(fields: [file_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  imports   File[]   @relation("SharedImports")
 }
 
 model FileHistory {
@@ -66,17 +75,19 @@ model FileHistory {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String    @unique
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
-  files         File[]
-  shares        Share[]
+  id             String     @id
+  name           String
+  email          String     @unique
+  emailVerified  Boolean
+  image          String?
+  createdAt      DateTime
+  updatedAt      DateTime
+  sessions       Session[]
+  accounts       Account[]
+  files          File[]
+  shares         Share[]
+  documents      Document[]
+  imported_files File[]     @relation("ImportSource")
 }
 
 model Session {
