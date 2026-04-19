@@ -1,9 +1,10 @@
 import prisma from "@ism/prisma";
 
-export const getAllDocuments = async () => {
+export const getAllDocuments = async (user_id: string) => {
   const [documents, stats] = await Promise.all([
-    prisma.document.findMany({ include: { history: true } }),
+    prisma.document.findMany({ where: { user_id }, include: { history: true } }),
     prisma.file.aggregate({
+      where: { user_id },
       _sum: { view: true },
       _count: { _all: true },
     }),

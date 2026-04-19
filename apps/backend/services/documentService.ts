@@ -32,6 +32,7 @@ function formatDocument(doc: {
 }
 
 export const createDocument = async (
+  user_id: string,
   body: Record<string, unknown>,
 ): Promise<ReturnType<typeof formatDocument>> => {
   const { title } = body as { title?: string };
@@ -43,6 +44,7 @@ export const createDocument = async (
 
   const doc = await prisma.document.create({
     data: {
+      user_id,
       id: document_id,
       title,
       history: { create: { modified_at: new Date() } },
@@ -63,10 +65,11 @@ export const getDocument = async (
   }
 
   const doc = await prisma.document.findUnique({
-    where: { id, files: { some: { document_id: id, user_id } } },
+    where: { id, user_id },
     include: {
       history: true,
       files: {
+        where: { user_id },
         include: {
           category: true,
           history: { orderBy: { modified_at: "desc" } },
@@ -102,6 +105,7 @@ export const getDocument = async (
 };
 
 export const changeDocumentName = async (
+  user_id: string,
   body: Record<string, unknown>,
 ): Promise<ReturnType<typeof formatDocument>> => {
   const { id, title } = body as { id?: string; title?: string };
@@ -109,13 +113,13 @@ export const changeDocumentName = async (
     throw new HttpError(400, "missing parameter.");
   }
 
-  const existing = await prisma.document.findUnique({ where: { id } });
+  const existing = await prisma.document.findUnique({ where: { id, user_id } });
   if (!existing) {
     throw new HttpError(404, "document not found.");
   }
 
   const doc = await prisma.document.update({
-    where: { id },
+    where: { id, user_id },
     data: {
       title,
       history: { create: { modified_at: new Date() } },
@@ -126,18 +130,21 @@ export const changeDocumentName = async (
   return formatDocument(doc);
 };
 
-export const deleteDocument = async (body: Record<string, unknown>): Promise<{ message: string }> => {
+export const deleteDocument = async (
+  user_id: string,
+  body: Record<string, unknown>,
+): Promise<{ message: string }> => {
   const { id } = body as { id?: string };
   if (!id) {
     throw new HttpError(400, "missing parameter.");
   }
 
-  const existing = await prisma.document.findUnique({ where: { id } });
+  const existing = await prisma.document.findUnique({ where: { id, user_id } });
   if (!existing) {
     throw new HttpError(404, "document not found.");
   }
 
-  await prisma.document.delete({ where: { id } });
+  await prisma.document.delete({ where: { id, user_id } });
 
   return { message: "delete successfully." };
 };

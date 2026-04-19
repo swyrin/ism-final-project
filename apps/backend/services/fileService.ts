@@ -66,12 +66,12 @@ export const createFile = async (
 
   const fileId = await fileRepository.generateFileId();
 
-  const category = await categoryRepository.getCategoryById(category_id);
+  const category = await categoryRepository.getCategoryById(category_id, user_id);
   if (!category) {
     throw new NotFoundError("category not found.");
   }
 
-  const document = await documentRepository.getDocumentById(document_id);
+  const document = await documentRepository.getDocumentById(document_id, user_id);
   if (!document) {
     throw new NotFoundError("document not found.");
   }
@@ -118,7 +118,7 @@ export const editFileInformation = async (
   }
 
   if (category_id) {
-    const category = await categoryRepository.getCategoryById(category_id);
+    const category = await categoryRepository.getCategoryById(category_id, user_id);
     if (!category) {
       throw new NotFoundError("category not found.");
     }

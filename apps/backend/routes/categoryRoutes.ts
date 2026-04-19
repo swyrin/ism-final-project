@@ -1,3 +1,4 @@
+import { requireAuth } from "@srv/middleware/middleware.auth";
 import * as categoryService from "@srv/services/categoryService";
 import { HttpError } from "@srv/utils/HttpError";
 import express from "express";
@@ -20,25 +21,25 @@ function handleError(err: unknown, res: express.Response) {
   }
 }
 
-router.get("/", async (_req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
-    res.json(await categoryService.getCategory());
+    res.json(await categoryService.getCategory(req.user!.user_id));
   } catch (error) {
     handleError(error, res);
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
-    res.status(201).json(await categoryService.createCategory(req.body));
+    res.status(201).json(await categoryService.createCategory(req.user!.user_id, req.body));
   } catch (error) {
     handleError(error, res);
   }
 });
 
-router.delete("/", async (req, res) => {
+router.delete("/", requireAuth, async (req, res) => {
   try {
-    res.json(await categoryService.deleteCategory(req.body));
+    res.json(await categoryService.deleteCategory(req.user!.user_id, req.body));
   } catch (error) {
     handleError(error, res);
   }

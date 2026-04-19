@@ -8,10 +8,20 @@ datasource db {
 }
 
 model Document {
+  user_id String
   id      String            @id
   title   String
   history DocumentHistory[]
   files   File[]
+  user    User              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Category {
+  user_id String 
+  id      Int    @id @default(autoincrement())
+  name    String @unique
+  files   File[]
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model DocumentHistory {
@@ -21,12 +31,6 @@ model DocumentHistory {
 
   @@id([document_id, modified_at])
   @@map("Document_History")
-}
-
-model Category {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  files File[]
 }
 
 model File {
@@ -55,6 +59,7 @@ model Share {
   file      File     @relation(fields: [file_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
+
 // Share internal to user, not related to file, for sharing file with other users without creating a new file entry
 model UserShare {
   id      String @id
@@ -66,6 +71,7 @@ model UserShare {
   storagePath String @default("")
   user        User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
+
 model FileHistory {
   file_id     String   @map("fid")
   modified_at DateTime
@@ -76,9 +82,9 @@ model FileHistory {
 }
 
 model User {
-  id            String    @id
+  id            String      @id
   name          String
-  email         String    @unique
+  email         String      @unique
   emailVerified Boolean
   image         String?
   createdAt     DateTime
@@ -87,8 +93,9 @@ model User {
   accounts      Account[]
   files         File[]
   shares        Share[]
-  userShares  UserShare[] 
-
+  userShares    UserShare[]
+  documents     Document[]
+  categories    Category[]
 }
 
 model Session {
