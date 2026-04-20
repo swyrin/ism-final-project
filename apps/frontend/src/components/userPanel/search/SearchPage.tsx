@@ -1,9 +1,10 @@
 import type { KeyboardEvent, MouseEvent } from "react";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, mutations, queryKeys, type SearchResult } from "@www/api";
+import { api, queryKeys, type SearchResult } from "@www/api";
+import EditFileModal from "@www/components/userPanel/knowledgeBase/EditFileModal";
 import FileMenu from "@www/components/userPanel/knowledgeBase/FileMenu";
-import ModalCategory from "@www/components/userPanel/knowledgeBase/modalCategory";
+import ShareModal from "@www/components/userPanel/knowledgeBase/ShareModal";
 import { API_URL } from "@www/constant";
 import letterColors from "@www/data/colorData";
 import * as pdfjsLib from "pdfjs-dist";
@@ -34,10 +35,9 @@ function SearchPage() {
   const [menuPositions, setMenuPositions] = useState<Record<string, { top: number; left: number }>>({});
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   const [loadingThumbnails, setLoadingThumbnails] = useState<Record<string, boolean>>({});
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editingDocId, setEditingDocId] = useState<string | null>(null);
-  const [initialCategory, setInitialCategory] = useState("");
+  const [editFile, setEditFile] = useState<SearchResult | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [shareModalFileId, setShareModalFileId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -55,14 +55,6 @@ function SearchPage() {
   const searchResults: SearchResult[] = rawResults.filter((doc) => {
     const lq = submittedQuery.toLowerCase();
     return (doc.title || "").toLowerCase().includes(lq) || (doc.description || "").toLowerCase().includes(lq);
-  });
-
-  const updateFileMutation = useMutation({
-    ...mutations.file.update,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.search(submittedQuery) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.home });
-    },
   });
 
   const deleteFileMutation = useMutation({
@@ -143,35 +135,10 @@ function SearchPage() {
     setActiveMenu(activeMenu === id ? null : id);
   };
 
-  const handleEditName = (id: string) => {
-    const newName = prompt("Enter new name:");
-    if (newName) {
-      updateFileMutation.mutate({ id, params: new URLSearchParams({ title: newName }) });
-    }
-  };
-
-  const handleEditDescription = (id: string) => {
-    const newDescription = prompt("Enter new description:");
-    if (newDescription) {
-      updateFileMutation.mutate({ id, params: new URLSearchParams({ description: newDescription }) });
-    }
-  };
-
-  const handleEditCategory = (id: string) => {
-    const doc = searchResults.find((d) => d.id === id);
-    setEditingDocId(id);
-    setInitialCategory(doc?.category_id || "");
-    setShowCategoryModal(true);
-  };
-
-  const handleSaveCategory = (newCategory: string) => {
-    if (!editingDocId) {
-      return;
-    }
-    updateFileMutation.mutate({
-      id: editingDocId,
-      params: new URLSearchParams({ category_id: newCategory }),
-    });
+  const handleEdit = (id: string) => {
+    const doc = searchResults.find((d) => d.id === id) ?? null;
+    setEditFile(doc);
+    setActiveMenu(null);
   };
 
   const handleDeleteFile = (id: string) => {
@@ -188,6 +155,16 @@ function SearchPage() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+  };
+
+  const handleViewSharedUrls = (id: string) => {
+    setShareModalFileId(id);
+    setActiveMenu(null);
+  };
+
+  const handleViewInNewTab = (id: string) => {
+    window.open(`/file/${id}`, "_blank");
+    setActiveMenu(null);
   };
 
   const handleOpenFileView = (file: SearchResult) => {
@@ -413,12 +390,12 @@ function SearchPage() {
                     docId={doc.id}
                     isMenuVisible={activeMenu === doc.id}
                     menuPosition={menuPositions[doc.id] || null}
-                    onEdit={() => handleEditName(doc.id)}
-                    onEditDescription={() => handleEditDescription(doc.id)}
-                    onEditCategory={() => handleEditCategory(doc.id)}
+                    onEdit={() => handleEdit(doc.id)}
                     onDelete={() => handleDeleteFile(doc.id)}
                     onDownload={() => handleDownloadFile(doc.id)}
                     onInfo={() => {}}
+                    onViewSharedUrls={() => handleViewSharedUrls(doc.id)}
+                    onViewInNewTab={() => handleViewInNewTab(doc.id)}
                     onClose={() => setActiveMenu(null)}
                   />
                 </div>
@@ -436,12 +413,23 @@ function SearchPage() {
         )}
       </div>
 
-      <ModalCategory
-        isOpen={showCategoryModal}
-        onClose={() => setShowCategoryModal(false)}
-        onSave={handleSaveCategory}
-        initialCategory={initialCategory}
+      <EditFileModal
+        file={editFile}
+        isOpen={Boolean(editFile)}
+        onClose={() => setEditFile(null)}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.search(submittedQuery) });
+          queryClient.invalidateQueries({ queryKey: queryKeys.home });
+        }}
       />
+
+      {shareModalFileId && (
+        <ShareModal
+          fileId={shareModalFileId}
+          isOpen={Boolean(shareModalFileId)}
+          onClose={() => setShareModalFileId(null)}
+        />
+      )}
     </div>
   );
 }

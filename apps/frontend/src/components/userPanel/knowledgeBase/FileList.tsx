@@ -2,10 +2,11 @@ import type { FileRecord } from "@www/api";
 import type { Dispatch, SetStateAction, MouseEvent } from "react";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, mutations, queryKeys } from "@www/api";
+import { api, queryKeys } from "@www/api";
+import EditFileModal from "@www/components/userPanel/knowledgeBase/EditFileModal";
 import FileMenu from "@www/components/userPanel/knowledgeBase/FileMenu";
-import ModalCategory from "@www/components/userPanel/knowledgeBase/modalCategory";
 import PageViewer from "@www/components/userPanel/knowledgeBase/PageViewer";
+import ShareModal from "@www/components/userPanel/knowledgeBase/ShareModal";
 import { API_URL } from "@www/constant";
 import letterColors from "@www/data/colorData";
 import * as pdfjsLib from "pdfjs-dist";
@@ -33,11 +34,11 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
   const [loadingThumbnails, setLoadingThumbnails] = useState<Record<string, boolean>>({});
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [categoryEditDoc, setCategoryEditDoc] = useState<FileRecord | null>(null);
+  const [editFile, setEditFile] = useState<FileRecord | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileRecord | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [infoFileId, setInfoFileId] = useState<string | null>(null);
+  const [shareModalFileId, setShareModalFileId] = useState<string | null>(null);
 
   const { data: categories = [] } = useQuery({
     queryKey: queryKeys.categories,
@@ -56,13 +57,6 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
       setFilteredDocuments((prev) =>
         prev.map((item) => (item.id === updatedFile.id ? { ...item, ...updatedFile } : item)),
       );
-    },
-  });
-
-  const updateFileMutation = useMutation({
-    ...mutations.file.update,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.document(documentId) });
     },
   });
 
@@ -135,37 +129,10 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
     setActiveMenu(activeMenu === id ? null : id);
   };
 
-  const handleEditName = async (id: string) => {
-    const newName = prompt("Enter new name:");
-    if (newName) {
-      const params = new URLSearchParams({ title: newName });
-      updateFileMutation.mutate({ id, params });
-    }
-  };
-
-  const handleEditDescription = async (id: string) => {
-    const newDescription = prompt("Enter new description:");
-    if (newDescription) {
-      const params = new URLSearchParams({ description: newDescription });
-      updateFileMutation.mutate({ id, params });
-    }
-  };
-
-  const handleEditCategory = (id: string) => {
-    const doc = filteredDocuments.find((d) => d.id === id);
-    if (!doc) {
-      return;
-    }
-    setCategoryEditDoc(doc);
-    setShowCategoryModal(true);
-  };
-
-  const handleSaveCategory = async (categoryId: string) => {
-    if (!categoryEditDoc) {
-      return;
-    }
-    const params = new URLSearchParams({ category_id: categoryId });
-    updateFileMutation.mutate({ id: categoryEditDoc.id, params });
+  const handleEdit = (id: string) => {
+    const doc = filteredDocuments.find((d) => d.id === id) ?? null;
+    setEditFile(doc);
+    setActiveMenu(null);
   };
 
   const handleDeleteFile = (id: string) => {
@@ -194,6 +161,16 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
   const handleShowInfo = (id: string) => {
     setInfoFileId(id);
     setShowInfoModal(true);
+  };
+
+  const handleViewSharedUrls = (id: string) => {
+    setShareModalFileId(id);
+    setActiveMenu(null);
+  };
+
+  const handleViewInNewTab = (id: string) => {
+    window.open(`/file/${id}`, "_blank");
+    setActiveMenu(null);
   };
 
   const getNameById = (id: string | number) => {
@@ -235,12 +212,12 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
                   docId={doc.id}
                   isMenuVisible={activeMenu === doc.id}
                   menuPosition={menuPosition}
-                  onEdit={() => handleEditName(doc.id)}
-                  onEditDescription={() => handleEditDescription(doc.id)}
-                  onEditCategory={() => handleEditCategory(doc.id)}
+                  onEdit={() => handleEdit(doc.id)}
                   onDelete={() => handleDeleteFile(doc.id)}
                   onDownload={() => handleDownloadFile(doc.id)}
                   onInfo={() => handleShowInfo(doc.id)}
+                  onViewSharedUrls={() => handleViewSharedUrls(doc.id)}
+                  onViewInNewTab={() => handleViewInNewTab(doc.id)}
                   onClose={() => setActiveMenu(null)}
                 />
               </div>
@@ -290,17 +267,22 @@ function FileList({ filteredDocuments, setFilteredDocuments, documentId }: FileL
         </div>
       ))}
 
-      <ModalCategory
-        isOpen={showCategoryModal}
-        onClose={() => {
-          setShowCategoryModal(false);
-          setCategoryEditDoc(null);
-        }}
-        onSave={handleSaveCategory}
-        initialCategory={categoryEditDoc ? String(categoryEditDoc.category_id) : ""}
+      <EditFileModal
+        file={editFile}
+        isOpen={Boolean(editFile)}
+        onClose={() => setEditFile(null)}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: queryKeys.document(documentId) })}
       />
 
       {selectedFile && <PageViewer selectedFile={selectedFile} onClose={() => setSelectedFile(null)} />}
+
+      {shareModalFileId && (
+        <ShareModal
+          fileId={shareModalFileId}
+          isOpen={Boolean(shareModalFileId)}
+          onClose={() => setShareModalFileId(null)}
+        />
+      )}
 
       {showInfoModal && (
         <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
